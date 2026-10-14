@@ -4,7 +4,7 @@ Tags: ai, chat, chatbot, customer support, knowledge base
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.4
+Stable tag: 1.4.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,8 @@ This is an independent plugin and is not affiliated with the listed AI providers
 5. Update the site's privacy notice to describe chat storage and the chosen provider. The floating widget appears on the frontend.
 
 PHP OpenSSL with AES-256-GCM support is required to store provider credentials. Markdown knowledge documents are available as reference material for public visitor questions: upload only information intended for that audience. Sites with membership or other third-party content restrictions should review which published content is appropriate for the knowledge index.
+
+Knowledge documents are saved as plain Markdown text. HTML tags are removed and invalid UTF-8 is rejected; line breaks, headings, lists and other plain Markdown formatting are retained.
 
 Developers can exclude additional posts with the `wln_multi_provider_ai_chat_public_knowledge_post` filter (return false for restricted posts); it is applied at indexing and retrieval. Provider requests do not follow HTTP redirects: configure the final API endpoint URL. Administrator connection tests display provider errors; the local `wln_multi_provider_ai_chat_error` action provides fixed diagnostic event names without logging credentials, prompts or provider response bodies.
 
@@ -117,6 +119,12 @@ The session endpoint issues a new random signed credential without storing data 
 
 == Changelog ==
 
+= 1.4.5 =
+* Kept the Tested up to declaration only in this readme.
+* Applied separate widget width (300-800px) and height (400-900px) setting sanitizers.
+* Sanitized POST values at input, preserving multiline welcome messages and system instructions.
+* Sanitized Markdown text in both editor save handlers, file uploads and the shared storage method.
+
 = 1.4.4 =
 * Escaped quotes when formatting message links to prevent HTML attribute injection.
 * Excluded password-protected posts and rechecked post visibility when retrieving existing knowledge chunks.
@@ -146,6 +154,9 @@ The session endpoint issues a new random signed credential without storing data 
 * Added signed sessions, authenticated API-key encryption, local knowledge indexing, retention cleanup and widget improvements.
 
 == Upgrade Notice ==
+
+= 1.4.5 =
+WordPress.org review fixes for compatibility metadata, widget dimension validation and knowledge document sanitization. Existing settings and stored data are preserved.
 
 = 1.4.4 =
 Security and directory-review fixes. Existing settings, API keys, conversation history and knowledge documents are preserved during updates. Private or password-protected posts are excluded from AI knowledge retrieval.

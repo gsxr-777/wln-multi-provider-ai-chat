@@ -167,10 +167,10 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             'sanitize_callback' => array($this, 'sanitize_font_family')
         ));
         register_setting('gsxr_777_widget_settings', 'gsxr_777_widget_width', array(
-            'sanitize_callback' => array($this, 'sanitize_widget_size')
+            'sanitize_callback' => array($this, 'sanitize_widget_width')
         ));
         register_setting('gsxr_777_widget_settings', 'gsxr_777_widget_height', array(
-            'sanitize_callback' => array($this, 'sanitize_widget_size')
+            'sanitize_callback' => array($this, 'sanitize_widget_height')
         ));
         register_setting('gsxr_777_widget_settings', 'gsxr_777_widget_theme_mode', array(
             'sanitize_callback' => array($this, 'sanitize_theme_mode')
@@ -186,7 +186,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             check_admin_referer('gsxr_777_api_settings');
 
             $api_base_url = $this->sanitize_api_base_url(
-                esc_url_raw($this->get_post_value('gsxr_777_api_base_url'))
+                $this->get_post_value('gsxr_777_api_base_url', '', 'url')
             );
             if ($api_base_url === '') {
                 echo '<div class="notice notice-error"><p>' .
@@ -230,7 +230,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             update_option('gsxr_777_api_frequency_penalty', $this->sanitize_penalty($this->get_post_value('gsxr_777_api_frequency_penalty', 0)));
             update_option('gsxr_777_api_presence_penalty', $this->sanitize_penalty($this->get_post_value('gsxr_777_api_presence_penalty', 0)));
             update_option('gsxr_777_api_history_limit', $this->sanitize_history_limit($this->get_post_value('gsxr_777_api_history_limit', 20)));
-            update_option('gsxr_777_api_system_instructions', sanitize_textarea_field($this->get_post_value('gsxr_777_api_system_instructions')));
+            update_option('gsxr_777_api_system_instructions', $this->get_post_value('gsxr_777_api_system_instructions', '', 'textarea'));
             update_option('gsxr_777_data_retention_days', $this->sanitize_retention_days($this->get_post_value('gsxr_777_data_retention_days', 90)));
             update_option('gsxr_777_security_log_retention_days', $this->sanitize_retention_days($this->get_post_value('gsxr_777_security_log_retention_days', 30)));
             update_option('gsxr_777_store_request_metadata', isset($_POST['gsxr_777_store_request_metadata']));
@@ -550,8 +550,8 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         if (isset($_POST['save_file'])) {
             check_admin_referer('gsxr_777_knowledge');
             
-            $filename = sanitize_file_name($this->get_post_value('filename'));
-            $content = $this->get_post_value('content');
+            $filename = $this->get_post_value('filename', '', 'filename');
+            $content = $this->get_post_value('content', '', 'textarea');
             
             if ($knowledge->save_file($filename, $content)) {
                 echo '<div class="notice notice-success"><p>' . esc_html__('File saved successfully!', 'wln-multi-provider-ai-chat') . '</p></div>';
@@ -674,7 +674,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 update_option('gsxr_777_widget_theme_mode', $this->sanitize_theme_mode($this->get_post_value('gsxr_777_widget_theme_mode', 'auto')));
             } else {
                 // Validate welcome message length (max 500 chars)
-                $welcome = $this->get_post_value('gsxr_777_widget_welcome');
+                $welcome = $this->get_post_value('gsxr_777_widget_welcome', '', 'textarea');
                 if ($this->text_length($welcome) > 500) {
                     echo '<div class="notice notice-error"><p>' .
                          esc_html(sprintf(
@@ -1098,8 +1098,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             }
             
             $filename = isset($_POST['filename']) ? sanitize_file_name(wp_unslash($_POST['filename'])) : '';
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Markdown is validated and stored as text by WLN_Multi_Provider_AI_Chat_Knowledge.
-            $content = isset($_POST['content']) ? wp_unslash($_POST['content']) : '';
+            $content = $this->get_post_value('content', '', 'textarea');
             
             // Validate filename
             if (empty($filename) || pathinfo($filename, PATHINFO_EXTENSION) !== 'md') {
@@ -1336,14 +1335,32 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         return $sanitized ? $sanitized : $default;
     }
 
-    public function sanitize_widget_size($size) {
-        $size = intval($size);
-        return max(300, min(900, $size));
+    public function sanitize_widget_width($size) {
+        return max(300, min(800, intval($size)));
     }
 
-    private function get_post_value($key, $default = '') {
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Callers verify their form nonce and apply field-specific sanitization.
-        return isset($_POST[$key]) ? wp_unslash($_POST[$key]) : $default;
+    public function sanitize_widget_height($size) {
+        return max(400, min(900, intval($size)));
+    }
+
+    private function get_post_value($key, $default = '', $type = 'text') {
+        // phpcs:disable WordPress.Security.NonceVerification.Missing -- Each caller verifies its form or AJAX nonce before reading input.
+        if (!isset($_POST[$key]) || !is_string($_POST[$key])) {
+            return $default;
+        }
+
+        if ($type === 'textarea') {
+            return sanitize_textarea_field(wp_unslash($_POST[$key]));
+        }
+        if ($type === 'url') {
+            return esc_url_raw(wp_unslash($_POST[$key]));
+        }
+        if ($type === 'filename') {
+            return sanitize_file_name(wp_unslash($_POST[$key]));
+        }
+
+        return sanitize_text_field(wp_unslash($_POST[$key]));
+        // phpcs:enable WordPress.Security.NonceVerification.Missing
     }
 
     private function text_length($text) {

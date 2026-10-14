@@ -78,8 +78,9 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
             return false;
         }
 
-        // Validate content encoding without requiring the mbstring extension.
-        $content = wp_check_invalid_utf8($content, true);
+        // Store plain Markdown text, preserving line breaks while stripping
+        // HTML, invalid UTF-8 and other unsafe textarea input on every path.
+        $content = sanitize_textarea_field($content);
         if ($content === '') {
             return false;
         }
@@ -160,7 +161,8 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
 
         // Read and validate content
         $content = file_get_contents($file['tmp_name']);
-        if (!is_string($content) || wp_check_invalid_utf8($content, true) === '') {
+        $content = is_string($content) ? sanitize_textarea_field($content) : '';
+        if ($content === '') {
             return array(
                 'success' => false,
                 'error' => __('File must be UTF-8 encoded', 'wln-multi-provider-ai-chat')
