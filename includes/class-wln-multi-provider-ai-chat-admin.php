@@ -1238,6 +1238,12 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         }
 
         $api = new WLN_Multi_Provider_AI_Chat_API();
+        // update_option() invokes this callback even when the form handler has
+        // already encrypted the key. add_option() can invoke it again too.
+        // Accept only ciphertext that authenticates with this site's salts.
+        if (strpos($key, 'v2:') === 0 && $api->decrypt_api_key($key) !== '') {
+            return $key;
+        }
         $encrypted = $api->encrypt_api_key($key);
         if ($encrypted === '') {
             add_settings_error(

@@ -151,6 +151,22 @@ class WLN_Multi_Provider_AI_Chat_API {
     }
 
     public function decrypt_api_key($encrypted_key) {
+        // Older settings forms encrypted once before update_option(), then
+        // again through the registered sanitize callback. Read those values
+        // without rewriting stored credentials or changing the site's settings.
+        for ($layer = 0; $layer < 5; $layer++) {
+            $decrypted = $this->decrypt_api_key_layer($encrypted_key);
+            if (strpos($decrypted, 'v2:') !== 0) {
+                return $decrypted;
+            }
+            $encrypted_key = $decrypted;
+        }
+
+        // Never send a still-encrypted value as a provider credential.
+        return '';
+    }
+
+    private function decrypt_api_key_layer($encrypted_key) {
         if (empty($encrypted_key)) {
             return '';
         }
@@ -425,7 +441,10 @@ class WLN_Multi_Provider_AI_Chat_API {
                 }
             }
 
-            $error_message = isset($data['error']['message']) ? $data['error']['message'] : __('API request failed', 'wln-multi-provider-ai-chat');
+            $error_message = $this->extract_api_error_message(
+                $data,
+                sprintf(__('API request failed (HTTP %d)', 'wln-multi-provider-ai-chat'), $status_code)
+            );
             error_log('WLN Multi-Provider AI Chat API Response Error: ' . $error_message);
             return array(
                 'success' => false,
@@ -847,6 +866,11 @@ class WLN_Multi_Provider_AI_Chat_API {
     }
 
     private function extract_api_error_message($data, $fallback_message) {
+        // Some OpenAI-compatible providers return {"error":"message"}.
+        if (isset($data['error']) && is_string($data['error']) && $data['error'] !== '') {
+            return $data['error'];
+        }
+
         if (isset($data['error']['message']) && is_string($data['error']['message']) && $data['error']['message'] !== '') {
             return $data['error']['message'];
         }

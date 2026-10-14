@@ -4,7 +4,7 @@ Tags: ai, chat, chatbot, customer support, knowledge base
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -107,6 +107,11 @@ The session endpoint issues a new random signed credential without storing data 
 
 == Changelog ==
 
+= 1.4.2 =
+* Prevented double encryption when WordPress sanitizes an already encrypted API key.
+* Added read compatibility for previously double-encrypted keys without rewriting saved settings.
+* Improved errors from providers that return a string error and retained HTTP status when no message is available.
+
 = 1.4.1 =
 * Renamed the plugin, PHP and JavaScript classes, files, frontend CSS classes and translation domain to WLN Multi-Provider AI Chat.
 * Preserved existing settings, API-key encryption, database tables, saved sessions and legacy shortcodes and REST routes.
@@ -118,6 +123,9 @@ The session endpoint issues a new random signed credential without storing data 
 * Added signed sessions, authenticated API-key encryption, local knowledge indexing, retention cleanup and widget improvements.
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+Fixes invalid API credentials caused by double encryption during settings saves. Existing keys are recovered on read; no re-entry or settings reset is required.
 
 = 1.4.1 =
 Renames the plugin while retaining existing data and configuration. When switching from the former plugin filename, deactivate the old copy and activate this package manually. Do not delete shared plugin data.
