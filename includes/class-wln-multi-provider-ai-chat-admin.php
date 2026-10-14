@@ -307,6 +307,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         ?>
         <div class="wrap wln-multi-provider-ai-chat-admin-page">
             <h1><?php esc_html_e('API Settings', 'wln-multi-provider-ai-chat'); ?></h1>
+            <p><?php esc_html_e('Chat messages, conversation history, instructions and relevant knowledge are sent to your configured AI provider when a message or connection test is submitted. Review the external-service terms and privacy links in the plugin readme before configuration.', 'wln-multi-provider-ai-chat'); ?></p>
             
             <form method="post" action="">
                 <?php wp_nonce_field('gsxr_777_api_settings'); ?>
@@ -565,6 +566,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         ?>
         <div class="wrap wln-multi-provider-ai-chat-admin-page wln-multi-provider-ai-chat-admin">
             <h1><?php esc_html_e('Knowledge Base', 'wln-multi-provider-ai-chat'); ?></h1>
+            <p><?php esc_html_e('Knowledge documents are used to answer public visitor questions. Upload only information you want to share with visitors and the configured AI provider.', 'wln-multi-provider-ai-chat'); ?></p>
             <p>
                 <?php
                 echo esc_html(sprintf(
@@ -719,6 +721,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             // Public pages may contain a cached wp_localize_script payload.
             // Purge the page/cache layer after a successful settings save so
             // appearance changes are visible immediately.
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- This is LiteSpeed Cache's third-party integration hook.
             do_action('litespeed_purge_all');
 
             $active_tab = $settings_section;
@@ -1081,8 +1084,8 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 wp_send_json_error(array('message' => $result['error']));
             }
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat AJAX Error (test_connection): ' . $e->getMessage());
-            wp_send_json_error(array('message' => __('An error occurred. Please check the logs.', 'wln-multi-provider-ai-chat')));
+            do_action('wln_multi_provider_ai_chat_error', 'connection_test_failed');
+            wp_send_json_error(array('message' => __('Connection test failed', 'wln-multi-provider-ai-chat')));
         }
     }
 
@@ -1117,7 +1120,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 throw new Exception(__('Error saving file!', 'wln-multi-provider-ai-chat'));
             }
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat AJAX Error (save_knowledge_file): ' . $e->getMessage());
+            do_action('wln_multi_provider_ai_chat_error', 'knowledge_save_failed');
             wp_send_json_error(array('message' => $e->getMessage()));
         }
     }
@@ -1161,7 +1164,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 throw new Exception(__('Error deleting file!', 'wln-multi-provider-ai-chat'));
             }
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat AJAX Error (delete_knowledge_file): ' . $e->getMessage());
+            do_action('wln_multi_provider_ai_chat_error', 'knowledge_delete_failed');
             wp_send_json_error(array('message' => $e->getMessage()));
         }
     }
@@ -1195,7 +1198,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 throw new Exception(__('File not found', 'wln-multi-provider-ai-chat'));
             }
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat AJAX Error (get_knowledge_file): ' . $e->getMessage());
+            do_action('wln_multi_provider_ai_chat_error', 'knowledge_read_failed');
             wp_send_json_error(array('message' => $e->getMessage()));
         }
     }

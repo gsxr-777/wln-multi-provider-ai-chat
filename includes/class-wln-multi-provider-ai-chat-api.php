@@ -120,14 +120,14 @@ class WLN_Multi_Provider_AI_Chat_API {
         }
 
         if (!function_exists('openssl_encrypt') || !in_array('aes-256-gcm', openssl_get_cipher_methods(), true)) {
-            error_log('WLN Multi-Provider AI Chat: OpenSSL not available, cannot encrypt API key');
+            do_action('wln_multi_provider_ai_chat_error', 'encryption_unavailable');
             return '';
         }
 
         try {
             $iv = random_bytes(12);
         } catch (Throwable $exception) {
-            error_log('WLN Multi-Provider AI Chat: Secure random generator is unavailable');
+            do_action('wln_multi_provider_ai_chat_error', 'secure_random_unavailable');
             return '';
         }
 
@@ -443,9 +443,10 @@ class WLN_Multi_Provider_AI_Chat_API {
 
             $error_message = $this->extract_api_error_message(
                 $data,
+                /* translators: %d: HTTP status code. */
                 sprintf(__('API request failed (HTTP %d)', 'wln-multi-provider-ai-chat'), $status_code)
             );
-            error_log('WLN Multi-Provider AI Chat API Response Error: ' . $error_message);
+            do_action('wln_multi_provider_ai_chat_error', 'provider_http_error');
             return array(
                 'success' => false,
                 'error' => $error_message
@@ -460,7 +461,7 @@ class WLN_Multi_Provider_AI_Chat_API {
             );
         }
 
-        error_log('WLN Multi-Provider AI Chat Invalid API response format');
+        do_action('wln_multi_provider_ai_chat_error', 'provider_invalid_response');
         return array(
             'success' => false,
             'error' => __('Invalid API response format', 'wln-multi-provider-ai-chat')
@@ -480,11 +481,14 @@ class WLN_Multi_Provider_AI_Chat_API {
             'headers' => $headers,
             'body' => $body,
             'timeout' => $this->get_openai_request_timeout($endpoint),
+            // Never forward API credentials through an endpoint redirect.
+            'redirection' => 0,
+            'limit_response_size' => 2 * MB_IN_BYTES,
             'httpversion' => '1.1'
         ));
 
         if (is_wp_error($response)) {
-            error_log('WLN Multi-Provider AI Chat API Error: ' . $response->get_error_message());
+            do_action('wln_multi_provider_ai_chat_error', 'provider_transport_error');
             return array(
                 'success' => false,
                 'error' => $response->get_error_message()
@@ -631,6 +635,9 @@ class WLN_Multi_Provider_AI_Chat_API {
             'headers' => $headers,
             'body' => wp_json_encode($yandex_payload),
             'timeout' => $this->get_provider_request_timeout($endpoint, 60),
+            // Never forward API credentials through an endpoint redirect.
+            'redirection' => 0,
+            'limit_response_size' => 2 * MB_IN_BYTES,
             'httpversion' => '1.1'
         ));
 
@@ -723,6 +730,9 @@ class WLN_Multi_Provider_AI_Chat_API {
             'headers' => $headers,
             'body' => wp_json_encode($anthropic_payload),
             'timeout' => $this->get_provider_request_timeout($endpoint, 30),
+            // Never forward API credentials through an endpoint redirect.
+            'redirection' => 0,
+            'limit_response_size' => 2 * MB_IN_BYTES,
             'httpversion' => '1.1'
         ));
         
@@ -806,6 +816,9 @@ class WLN_Multi_Provider_AI_Chat_API {
             'headers' => $headers,
             'body' => wp_json_encode($gemini_payload),
             'timeout' => $this->get_provider_request_timeout($endpoint, 30),
+            // Never forward API credentials through an endpoint redirect.
+            'redirection' => 0,
+            'limit_response_size' => 2 * MB_IN_BYTES,
             'httpversion' => '1.1'
         ));
         
@@ -971,7 +984,10 @@ class WLN_Multi_Provider_AI_Chat_API {
             $poll_response = wp_remote_get($poll_url, array(
                 'headers' => $headers,
                 'timeout' => $this->get_provider_request_timeout($poll_url, 20),
-                'httpversion' => '1.1'
+                // Never forward API credentials through an endpoint redirect.
+            'redirection' => 0,
+            'limit_response_size' => 2 * MB_IN_BYTES,
+            'httpversion' => '1.1'
             ));
 
             if (is_wp_error($poll_response)) {

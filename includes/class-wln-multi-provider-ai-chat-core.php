@@ -119,7 +119,7 @@ class WLN_Multi_Provider_AI_Chat_Core {
         }
 
         global $wp_version;
-        if (version_compare($wp_version, '5.0.0', '<')) {
+        if (version_compare($wp_version, '5.0', '<')) {
             deactivate_plugins(WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_BASENAME);
             wp_die(esc_html__('WLN Multi-Provider AI Chat requires WordPress 5.0.0 or higher.', 'wln-multi-provider-ai-chat'));
         }
@@ -136,6 +136,7 @@ class WLN_Multi_Provider_AI_Chat_Core {
     }
 
     public static function uninstall() {
+        self::deactivate();
         if (get_option('gsxr_777_delete_data_on_uninstall', false)) {
             self::delete_tables();
             self::delete_options();
@@ -280,7 +281,7 @@ class WLN_Multi_Provider_AI_Chat_Core {
         // Check for database errors
         global $wpdb;
         if (!empty($wpdb->last_error)) {
-            error_log('WLN Multi-Provider AI Chat Database Error: ' . $wpdb->last_error);
+            do_action('wln_multi_provider_ai_chat_error', 'schema_update_failed');
         }
     }
 
@@ -291,7 +292,7 @@ class WLN_Multi_Provider_AI_Chat_Core {
         if (!file_exists($knowledge_dir)) {
             // Create directory with error handling
             if (!wp_mkdir_p($knowledge_dir)) {
-                error_log('WLN Multi-Provider AI Chat: Could not create knowledge directory: ' . $knowledge_dir);
+                do_action('wln_multi_provider_ai_chat_error', 'knowledge_directory_create_failed');
                 return false;
             }
             
@@ -299,12 +300,12 @@ class WLN_Multi_Provider_AI_Chat_Core {
             $htaccess_content = "Options -Indexes\n<FilesMatch \"\\.(?:md|txt|json)$\">\nRequire all denied\n</FilesMatch>\n<IfModule !mod_authz_core.c>\n<FilesMatch \"\\.(?:md|txt|json)$\">\nOrder allow,deny\nDeny from all\n</FilesMatch>\n</IfModule>";
             $result = file_put_contents($knowledge_dir . '/.htaccess', $htaccess_content, LOCK_EX);
             if ($result === false) {
-                error_log('WLN Multi-Provider AI Chat: Could not write .htaccess file');
+                do_action('wln_multi_provider_ai_chat_error', 'knowledge_protection_write_failed');
             }
             
             $index_content = "<?php\n// Silence is golden.\n";
             if (file_put_contents($knowledge_dir . '/index.php', $index_content, LOCK_EX) === false) {
-                error_log('WLN Multi-Provider AI Chat: Could not write index.php file');
+                do_action('wln_multi_provider_ai_chat_error', 'knowledge_index_file_write_failed');
             }
         } else {
             // Repair protection created by older plugin versions.
@@ -430,6 +431,9 @@ class WLN_Multi_Provider_AI_Chat_Core {
 
         foreach ($options as $option) {
             delete_option($option);
+            // Partial-renaming builds used these fallback options. Leaving
+            // them behind would restore deleted settings on the next install.
+            delete_option('wln_multi_provider_ai_chat_' . substr($option, strlen('gsxr_777_')));
         }
     }
 

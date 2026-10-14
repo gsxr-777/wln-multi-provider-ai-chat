@@ -673,7 +673,9 @@
         escapeHtml(text) {
             const element = document.createElement('div');
             element.textContent = text;
-            return element.innerHTML;
+            // This escaped text is also interpolated into link attributes.
+            // textContent/innerHTML alone does not escape quotation marks.
+            return element.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
         scrollToBottom() {

@@ -32,7 +32,20 @@ class WLN_Multi_Provider_AI_Chat_Widget {
         register_rest_route($namespace, '/chat', array(
             'methods' => 'POST',
             'callback' => array($this, 'handle_chat_message'),
-            'permission_callback' => array($this, 'check_session_permissions')
+            'permission_callback' => array($this, 'check_session_permissions'),
+            'args' => array(
+                'session_id' => array('type' => 'string', 'required' => true, 'pattern' => '^gsxr777_[a-f0-9]{32}$'),
+                'message' => array('type' => 'string', 'required' => true, 'minLength' => 1, 'maxLength' => 5000),
+                'context' => array(
+                    'type' => 'object',
+                    'properties' => array(
+                        'url' => array('type' => 'string'),
+                        'title' => array('type' => 'string'),
+                        'content' => array('type' => 'string'),
+                        'selectedText' => array('type' => 'string'),
+                    ),
+                ),
+            ),
         ));
 
         register_rest_route($namespace, '/history/(?P<session_id>[a-zA-Z0-9_-]+)', array(
@@ -76,7 +89,8 @@ class WLN_Multi_Provider_AI_Chat_Widget {
     }
 
     public function check_session_permissions($request) {
-        $session_id = sanitize_text_field((string) $request->get_param('session_id'));
+        $session_id = $request->get_param('session_id');
+        $session_id = is_string($session_id) ? sanitize_text_field($session_id) : '';
         $session_token = $request->get_header('X-WLN-Session-Token');
         if (!$session_token) {
             $session_token = $request->get_header('X-GSXR-Session-Token');
@@ -159,7 +173,7 @@ class WLN_Multi_Provider_AI_Chat_Widget {
         $response = $api->chat_completion($history, $chat_context);
         
         if (!$response['success']) {
-            error_log('WLN Multi-Provider AI Chat API request failed: ' . sanitize_text_field($response['error']));
+            do_action('wln_multi_provider_ai_chat_error', 'chat_provider_failed');
             return new WP_Error(
                 'api_error',
                 __('The AI service is temporarily unavailable. Please try again.', 'wln-multi-provider-ai-chat'),

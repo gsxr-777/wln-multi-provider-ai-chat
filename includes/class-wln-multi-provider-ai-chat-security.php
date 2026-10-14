@@ -122,7 +122,7 @@ class WLN_Multi_Provider_AI_Chat_Security {
 
         if ($updated === false) {
             // Fail closed when accounting cannot be performed.
-            error_log('WLN Multi-Provider AI Chat: Rate limit storage error');
+            do_action('wln_multi_provider_ai_chat_error', 'rate_limit_storage_failed');
             return false;
         }
 
@@ -228,10 +228,10 @@ class WLN_Multi_Provider_AI_Chat_Security {
             );
             
             if ($result === false && !empty($wpdb->last_error)) {
-                error_log('WLN Multi-Provider AI Chat: Failed to log security event - ' . $wpdb->last_error);
+                do_action('wln_multi_provider_ai_chat_error', 'security_log_write_failed');
             }
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat: Security log error - ' . $e->getMessage());
+            do_action('wln_multi_provider_ai_chat_error', 'security_log_failed');
         }
     }
 

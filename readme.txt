@@ -4,7 +4,7 @@ Tags: ai, chat, chatbot, customer support, knowledge base
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -17,7 +17,7 @@ WLN Multi-Provider AI Chat adds a floating chat widget to a WordPress site. Site
 Features include:
 
 * OpenAI, Anthropic Claude, Google Gemini, YandexGPT, OpenRouter, local Ollama, and custom OpenAI-compatible endpoints.
-* A local database knowledge index for published public posts, pages, and administrator-supplied Markdown documents.
+* A local database knowledge index for published, publicly viewable posts and pages without passwords, and administrator-supplied Markdown documents.
 * Optional page context and configurable conversation history sent with a question.
 * Widget colors, dimensions, position, fonts, and welcome messages.
 * Signed visitor sessions, abuse-prevention rate limits, encrypted API-key storage, and administrator permission checks.
@@ -35,6 +35,10 @@ This is an independent plugin and is not affiliated with the listed AI providers
 3. Click Test Connection, then save the settings.
 4. Configure Widget Settings and optionally add Markdown documents under Knowledge Base.
 5. Update the site's privacy notice to describe chat storage and the chosen provider. The floating widget appears on the frontend.
+
+PHP OpenSSL with AES-256-GCM support is required to store provider credentials. Markdown knowledge documents are available as reference material for public visitor questions: upload only information intended for that audience. Sites with membership or other third-party content restrictions should review which published content is appropriate for the knowledge index.
+
+Developers can exclude additional posts with the `wln_multi_provider_ai_chat_public_knowledge_post` filter (return false for restricted posts); it is applied at indexing and retrieval. Provider requests do not follow HTTP redirects: configure the final API endpoint URL. Administrator connection tests display provider errors; the local `wln_multi_provider_ai_chat_error` action provides fixed diagnostic event names without logging credentials, prompts or provider response bodies.
 
 The floating widget is configured through Widget Settings. Existing `[gsxr_777_chat]` shortcodes and the new `[wln_multi_provider_ai_chat]` alias remain recognized; the frontend displays one global floating widget.
 
@@ -85,6 +89,12 @@ Local Ollama software license: https://github.com/ollama/ollama/blob/main/LICENS
 
 For a custom endpoint, the destination and applicable terms/privacy policy are determined by the administrator. Review those documents before configuration and disclose that service in the site's privacy notice. The plugin cannot identify the operator or terms of an arbitrary URL.
 
+= Poolside (optional custom endpoint) =
+
+When an administrator configures https://inference.poolside.ai/v1 and a supported model, Poolside generates replies using the same request data and triggers described above. The plugin allows a longer request timeout for Poolside endpoints. No Poolside request is made unless that endpoint is explicitly configured.
+Terms: https://poolside.ai/legal/eula
+Privacy: https://poolside.ai/legal/privacy
+
 == Frequently Asked Questions ==
 
 = Where is chat data stored? =
@@ -107,6 +117,14 @@ The session endpoint issues a new random signed credential without storing data 
 
 == Changelog ==
 
+= 1.4.4 =
+* Escaped quotes when formatting message links to prevent HTML attribute injection.
+* Excluded password-protected posts and rechecked post visibility when retrieving existing knowledge chunks.
+* Validated REST chat parameter types and message length before processing requests.
+* Disabled API redirects to avoid forwarding credentials and limited response sizes.
+* Replaced raw error logging with local diagnostic events that contain only fixed event identifiers.
+* Cleared scheduled tasks and partial-rename fallback options during the relevant uninstall paths.
+
 = 1.4.3 =
 * Prevented theme section containment from clipping the floating button on hover.
 * Isolated the send button dimensions and outline icons from global theme submit-button and SVG styles.
@@ -128,6 +146,9 @@ The session endpoint issues a new random signed credential without storing data 
 * Added signed sessions, authenticated API-key encryption, local knowledge indexing, retention cleanup and widget improvements.
 
 == Upgrade Notice ==
+
+= 1.4.4 =
+Security and directory-review fixes. Existing settings, API keys, conversation history and knowledge documents are preserved during updates. Private or password-protected posts are excluded from AI knowledge retrieval.
 
 = 1.4.2 =
 Fixes invalid API credentials caused by double encryption during settings saves. Existing keys are recovered on read; no re-entry or settings reset is required.

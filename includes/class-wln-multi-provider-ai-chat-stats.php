@@ -33,10 +33,10 @@ class WLN_Multi_Provider_AI_Chat_Stats {
             ));
 
             if ($result === false && !empty($wpdb->last_error)) {
-                error_log('WLN Multi-Provider AI Chat: Failed to store session');
+                do_action('wln_multi_provider_ai_chat_error', 'session_write_failed');
             }
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat: Session tracking error - ' . $e->getMessage());
+            do_action('wln_multi_provider_ai_chat_error', 'session_tracking_failed');
         }
     }
 
@@ -287,7 +287,7 @@ class WLN_Multi_Provider_AI_Chat_Stats {
             
             return $deleted;
         } catch (Exception $e) {
-            error_log('WLN Multi-Provider AI Chat: Cleanup error - ' . $e->getMessage());
+            do_action('wln_multi_provider_ai_chat_error', 'retention_cleanup_failed');
             return 0;
         }
     }

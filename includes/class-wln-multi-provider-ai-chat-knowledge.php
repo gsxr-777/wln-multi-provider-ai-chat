@@ -211,7 +211,7 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
 
         $previous_suppress_errors = $wpdb->suppress_errors(true);
         $results = $wpdb->get_results($wpdb->prepare(
-            "SELECT source_url, title, content,
+            "SELECT source_type, source_key, source_url, title, content,
                     MATCH(title, content) AGAINST (%s IN NATURAL LANGUAGE MODE) AS relevance
              FROM {$table_name}
              WHERE MATCH(title, content) AGAINST (%s IN NATURAL LANGUAGE MODE)
@@ -229,6 +229,16 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
 
         $selected = '';
         foreach ($results as $result) {
+            // An older index may still contain a post whose visibility changed.
+            // Recheck the current post, including its password, before disclosure.
+            if ($result->source_type === 'post') {
+                $post_id = url_to_postid($result->source_url);
+                if (!$post_id || !hash_equals($result->source_key, $this->create_source_key('post', $post_id)) || !$this->is_public_knowledge_post(get_post($post_id))) {
+                    continue;
+                }
+            } elseif ($result->source_type !== 'file') {
+                continue;
+            }
             $source_label = trim((string) $result->title);
             if (!empty($result->source_url)) {
                 $source_label .= ' — ' . esc_url_raw($result->source_url);
@@ -284,8 +294,7 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
             return;
         }
 
-        $public_post_types = get_post_types(array('public' => true));
-        if ($post->post_status !== 'publish' || !in_array($post->post_type, $public_post_types, true) || $post->post_type === 'attachment') {
+        if (!$this->is_public_knowledge_post($post)) {
             $this->delete_source_from_index('post', (string) $post_id);
             return;
         }
@@ -305,6 +314,20 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
 
     public function delete_post_from_index($post_id) {
         $this->delete_source_from_index('post', (string) $post_id);
+    }
+
+    private function is_public_knowledge_post($post) {
+        if (!$post instanceof WP_Post || $post->post_status !== 'publish' || $post->post_password !== '' || $post->post_type === 'attachment') {
+            return false;
+        }
+
+        $post_type = get_post_type_object($post->post_type);
+        if (!$post_type || !$post_type->public || !is_post_type_viewable($post_type)) {
+            return false;
+        }
+
+        // Membership integrations can further restrict otherwise public posts.
+        return (bool) apply_filters('wln_multi_provider_ai_chat_public_knowledge_post', true, $post);
     }
 
     public function rebuild_index() {
@@ -394,7 +417,7 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
 
             if ($inserted === false) {
                 $wpdb->query('ROLLBACK');
-                error_log('WLN Multi-Provider AI Chat: Could not update the knowledge index');
+                do_action('wln_multi_provider_ai_chat_error', 'knowledge_index_write_failed');
                 return false;
             }
         }
@@ -474,7 +497,7 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
             array_push($where_params, $like, $like);
         }
 
-        $sql = "SELECT source_url, title, content, (" . implode(' + ', $score_parts) . ") AS relevance
+        $sql = "SELECT source_type, source_key, source_url, title, content, (" . implode(' + ', $score_parts) . ") AS relevance
                 FROM {$table_name}
                 WHERE " . implode(' OR ', $where_parts) . "
                 ORDER BY relevance DESC, updated_at DESC
@@ -606,7 +629,7 @@ class WLN_Multi_Provider_AI_Chat_Knowledge {
             }
         } catch (Exception $exception) {
             $migration_complete = false;
-            error_log('WLN Multi-Provider AI Chat: Legacy knowledge migration failed');
+            do_action('wln_multi_provider_ai_chat_error', 'legacy_knowledge_migration_failed');
         }
 
         if ($migration_complete) {
