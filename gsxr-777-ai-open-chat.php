@@ -11,7 +11,7 @@
  * Requires at least: 5.0
  * Tested up to: 7.0
  * Requires PHP: 7.4
- * License: MIT
+ * License: GPL-2.0-or-later
  */
 
 // Prevent direct access

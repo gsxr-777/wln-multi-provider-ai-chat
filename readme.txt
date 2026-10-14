@@ -1,14 +1,14 @@
 === GSXR-777 AI Open Chat ===
 Contributors: gsxr777
-Tags: ai, chat, chatbot, openai, claude, gemini, customer support, artificial intelligence
+Tags: ai, chat, chatbot, openai, customer support
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 7.4
 Stable tag: 1.4.0
-License: MIT
-License URI: https://opensource.org/licenses/MIT
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Universal AI chat widget for WordPress with support for OpenAI, Claude, Gemini, and other LLM providers. Easy setup, customizable design, multilingual support.
+AI chat widget for WordPress with multiple providers, customizable design, and multilingual support.
 
 == Description ==
 
@@ -136,6 +136,10 @@ The plugin interface supports English and Russian out of the box, and you can ea
 
 The plugin is designed with privacy controls, but installing it alone does not make a site legally compliant. You can disable page context and diagnostic metadata, configure retention, expose the generated privacy-policy text, and let visitors clear their conversation.
 
+= What data is sent to an AI provider? =
+
+When the site owner configures an AI provider, visitor messages are sent to that provider to generate replies. If page context is enabled, the current page title, URL, selected text, and relevant page or knowledge-base excerpts may also be sent. The plugin does not send data to a provider until the owner configures an API endpoint and key. Review the provider's terms and privacy policy, and update your site's privacy notice before enabling the chat.
+
 == Screenshots ==
 
 1. Chat widget in action on the frontend
@@ -183,4 +187,4 @@ We welcome contributions! Please see our GitHub repository for contribution guid
 
 == License ==
 
-This plugin is licensed under the MIT License. See the LICENSE file for details.
+This plugin is licensed under the GNU General Public License, version 2 or later. See the LICENSE file for details.
