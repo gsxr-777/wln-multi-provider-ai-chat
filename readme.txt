@@ -97,6 +97,15 @@ When an administrator configures https://inference.poolside.ai/v1 and a supporte
 Terms: https://poolside.ai/legal/eula
 Privacy: https://poolside.ai/legal/privacy
 
+== Screenshots ==
+
+1. Floating AI chat widget with a welcome message and message input.
+2. API settings: provider endpoint, model, generation parameters, page context and data retention.
+3. Knowledge base: site content index and Markdown document editor.
+4. General widget settings: title, welcome message, position and dimensions.
+5. Widget appearance settings: color scheme, gradients, message colors and fonts.
+6. Conversation statistics: sessions, messages and average messages per session.
+
 == Frequently Asked Questions ==
 
 = Where is chat data stored? =

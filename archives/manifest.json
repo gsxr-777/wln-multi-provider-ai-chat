@@ -1,0 +1,236 @@
+[
+  {
+    "file": "0gsxr-777-ai-open-chat.zip",
+    "version": "1.1.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "824c3bc155bd667761bcc1378e1b75594cae23b6c0a0dceb24369c4c2b3b8a70",
+    "original_sha256": "824c3bc155bd667761bcc1378e1b75594cae23b6c0a0dceb24369c4c2b3b8a70",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.1.0-snapshot-1"
+  },
+  {
+    "file": "1gsxr-777-ai-open-chat.zip",
+    "version": "1.1.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "51334b4b0971178870d5c185cd5fc4b7eedb44073a38cac6d42bdd87ed110ebe",
+    "original_sha256": "51334b4b0971178870d5c185cd5fc4b7eedb44073a38cac6d42bdd87ed110ebe",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.1.0"
+  },
+  {
+    "file": "2gsxr-777-ai-open-chat.zip",
+    "version": "1.2.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "eedaad4d415616233715f409775432e91b18ebc6d981c6611c09e09f0c7f0956",
+    "original_sha256": "eedaad4d415616233715f409775432e91b18ebc6d981c6611c09e09f0c7f0956",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.2.0"
+  },
+  {
+    "file": "3gsxr-777-ai-open-chat.zip",
+    "version": "1.3.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "3fac02e6e728bc64dc2f935aa8f2849842a5698008948381a8c6217131b1ede3",
+    "original_sha256": "0e477f5255658014e3dfb8287a40e185ddca313d4c25d6201c42fd15e893c834",
+    "removed_git_entries": 142,
+    "duplicate_sources": [],
+    "tag": "v1.3.0"
+  },
+  {
+    "file": "gsxr-777-ai-open-chat-20260724-011049.zip",
+    "version": "1.4.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "bdfd36bca95f0f885493046670f9c38051a81c11dd544e4b37b60aff28097435",
+    "original_sha256": "bdfd36bca95f0f885493046670f9c38051a81c11dd544e4b37b60aff28097435",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.0-snapshot-1"
+  },
+  {
+    "file": "gsxr-777-ai-open-chat-20260724-011904.zip",
+    "version": "1.4.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "ab4633b5388b8be58686165a685ad40c6ad9f2153f6b17450c1996e89dc1fd71",
+    "original_sha256": "ab4633b5388b8be58686165a685ad40c6ad9f2153f6b17450c1996e89dc1fd71",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.0-snapshot-2"
+  },
+  {
+    "file": "gsxr-777-ai-open-chat-20260724-014012.zip",
+    "version": "1.4.0",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "f59777159e2372d055035882596557a2997b3bdff0db4684cc5ce01bb1910823",
+    "original_sha256": "f59777159e2372d055035882596557a2997b3bdff0db4684cc5ce01bb1910823",
+    "removed_git_entries": 0,
+    "duplicate_sources": [
+      "gsxr-777-ai-open-chat-20260724-014012.zip"
+    ],
+    "tag": "v1.4.0-snapshot-3"
+  },
+  {
+    "file": "gsxr-777-ai-open-chat.zip",
+    "version": "1.3.1",
+    "plugin_name": "GSXR-777 AI Open Chat",
+    "kind": "plugin",
+    "sha256": "7275fae354f5d33b1abe3ff2682d1ac80d26148c12fabcf5962a4c0f379facc1",
+    "original_sha256": "60ddab75b38544a47e57116865cc03e125578271246ea47048ea75db2b791727",
+    "removed_git_entries": 159,
+    "duplicate_sources": [],
+    "tag": "v1.3.1"
+  },
+  {
+    "file": "wln-ai-chat-update-1.4.0.zip",
+    "version": "1.4.0",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "0d37e3a57ac72cb095f8bffa6f838610d3ebf9da9453f4112aa6d7d44733bb47",
+    "original_sha256": "0d37e3a57ac72cb095f8bffa6f838610d3ebf9da9453f4112aa6d7d44733bb47",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.0"
+  },
+  {
+    "file": "wln-before-review-20260926-173208.zip",
+    "version": "1.4.0",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "2fe75dee9fbe4f41b094a5c6c7488a761d28c74ce21402315fa48b8f1a1b80c8",
+    "original_sha256": "2fe75dee9fbe4f41b094a5c6c7488a761d28c74ce21402315fa48b8f1a1b80c8",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.0-snapshot-5"
+  },
+  {
+    "file": "wln-language-pack-ru_RU-1.4.4.zip",
+    "version": "ru_RU",
+    "plugin_name": "Russian language pack",
+    "kind": "language-pack",
+    "sha256": "f220a874428acce28999936900f41a06974b6e2d13203be224e2ceedc68de422",
+    "original_sha256": "f220a874428acce28999936900f41a06974b6e2d13203be224e2ceedc68de422",
+    "removed_git_entries": 0,
+    "duplicate_sources": [
+      "wln-language-pack-ru_RU.zip"
+    ]
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.1.zip",
+    "version": "1.4.1",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "08ae4c60639243e28fad7ab815b87be64736943b052062b934a4202a04f2ae66",
+    "original_sha256": "08ae4c60639243e28fad7ab815b87be64736943b052062b934a4202a04f2ae66",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.1"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.2.zip",
+    "version": "1.4.2",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "3b8e286695d5c7e86ffe2e6c27ea34a3bc8bdd622c0e45253503a04d759e8108",
+    "original_sha256": "3b8e286695d5c7e86ffe2e6c27ea34a3bc8bdd622c0e45253503a04d759e8108",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.2"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.3.zip",
+    "version": "1.4.3",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "005080b6a9ee92cb14929313c15682a00f5f9c50422796d518aa86c13797c9ce",
+    "original_sha256": "005080b6a9ee92cb14929313c15682a00f5f9c50422796d518aa86c13797c9ce",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.3"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.4-wordpress-org.zip",
+    "version": "1.4.4",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "5977a10fe39dcb0ab56eb9137a103343851d59fcab5eca9a5e00d297f58b8df8",
+    "original_sha256": "5977a10fe39dcb0ab56eb9137a103343851d59fcab5eca9a5e00d297f58b8df8",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.4"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.5-wordpress-org.zip",
+    "version": "1.4.5",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "8848af3b88d074468ab2792e0e782556525927b6948e6766b229d1498ce5fde4",
+    "original_sha256": "8848af3b88d074468ab2792e0e782556525927b6948e6766b229d1498ce5fde4",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.5"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.6-wordpress-org.zip",
+    "version": "1.4.6",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "b530d12225b47d1e79a629bfca4fff8fc355fb23172d80f29bac713dbb31d5c8",
+    "original_sha256": "b530d12225b47d1e79a629bfca4fff8fc355fb23172d80f29bac713dbb31d5c8",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.6"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.7-wordpress-org.zip",
+    "version": "1.4.7",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "51c685715f2b2303b352950f91234097d7dd97296bb20b5e1f4531abf4251891",
+    "original_sha256": "51c685715f2b2303b352950f91234097d7dd97296bb20b5e1f4531abf4251891",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.7"
+  },
+  {
+    "file": "wln-multi-provider-ai-chat-1.4.8-wordpress-org.zip",
+    "version": "1.4.8",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "074d0c536d2c4baf14b5a70f264915d5ee2f68ebb95bb03e7e2fb1fc2c8e1398",
+    "original_sha256": "074d0c536d2c4baf14b5a70f264915d5ee2f68ebb95bb03e7e2fb1fc2c8e1398",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.8"
+  },
+  {
+    "file": "wordpress-org-1.4.7.zip",
+    "version": "1.4.7",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "edd26038b51656f9029953a1f080d7be80b2f0d97570f33e32bffcc332ff5c5e",
+    "original_sha256": "edd26038b51656f9029953a1f080d7be80b2f0d97570f33e32bffcc332ff5c5e",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.7-snapshot-1"
+  },
+  {
+    "file": "wordpress-org-1.4.8.zip",
+    "version": "1.4.8",
+    "plugin_name": "WLN Multi-Provider AI Chat",
+    "kind": "plugin",
+    "sha256": "2145b57ff8a37eceefd180181a250a5d75233dd80f1caa078301bd4b2b259685",
+    "original_sha256": "2145b57ff8a37eceefd180181a250a5d75233dd80f1caa078301bd4b2b259685",
+    "removed_git_entries": 0,
+    "duplicate_sources": [],
+    "tag": "v1.4.8-snapshot-1"
+  }
+]

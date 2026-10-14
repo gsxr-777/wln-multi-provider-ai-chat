@@ -1,0 +1,22 @@
+# Local secrets and site data
+.env
+.env.*
+!.env.example
+wp-config.php
+*.sql
+*.sqlite
+*.sqlite3
+*.log
+*.pem
+*.key
+
+# Dependencies and local tooling
+/vendor/
+/node_modules/
+/.idea/
+/.vscode/
+/output/
+/tmp/
+/temp/
+.DS_Store
+Thumbs.db
