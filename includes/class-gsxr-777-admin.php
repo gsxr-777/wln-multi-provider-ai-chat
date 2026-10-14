@@ -9,6 +9,8 @@ if (!defined('ABSPATH')) {
 
 class GSXR_777_Admin {
 
+    private $api_key_mask = '********';
+
     public function __construct() {
         // Constructor
     }
@@ -72,6 +74,9 @@ class GSXR_777_Admin {
         register_setting('gsxr_777_api_settings', 'gsxr_777_api_model', array(
             'sanitize_callback' => 'sanitize_text_field'
         ));
+        register_setting('gsxr_777_api_settings', 'gsxr_777_api_project_id', array(
+            'sanitize_callback' => 'sanitize_text_field'
+        ));
         register_setting('gsxr_777_api_settings', 'gsxr_777_api_temperature', array(
             'sanitize_callback' => array($this, 'sanitize_temperature')
         ));
@@ -111,10 +116,23 @@ class GSXR_777_Admin {
             
             // Encrypt API key before saving
             $api = new GSXR_777_API();
-            $encrypted_key = $api->encrypt_api_key(sanitize_text_field($_POST['gsxr_777_api_key']));
-            update_option('gsxr_777_api_key', $encrypted_key);
+            $stored_encrypted_key = get_option('gsxr_777_api_key', '');
+            $submitted_api_key = isset($_POST['gsxr_777_api_key']) ? sanitize_text_field($_POST['gsxr_777_api_key']) : '';
+            $is_masked_value = isset($_POST['gsxr_777_api_key_masked']) &&
+                sanitize_text_field($_POST['gsxr_777_api_key_masked']) === '1' &&
+                $submitted_api_key === $this->api_key_mask;
+
+            // Keep existing encrypted key when password field is left empty.
+            if ($submitted_api_key !== '' && !$is_masked_value) {
+                // Guard against accidental re-encryption of already encrypted value.
+                if (empty($stored_encrypted_key) || !hash_equals($stored_encrypted_key, $submitted_api_key)) {
+                    $encrypted_key = $api->encrypt_api_key($submitted_api_key);
+                    update_option('gsxr_777_api_key', $encrypted_key);
+                }
+            }
             
             update_option('gsxr_777_api_model', sanitize_text_field($_POST['gsxr_777_api_model']));
+            update_option('gsxr_777_api_project_id', sanitize_text_field($_POST['gsxr_777_api_project_id'] ?? ''));
             update_option('gsxr_777_api_temperature', $this->sanitize_temperature($_POST['gsxr_777_api_temperature']));
             update_option('gsxr_777_api_max_tokens', absint($_POST['gsxr_777_api_max_tokens']));
             
@@ -122,8 +140,11 @@ class GSXR_777_Admin {
         }
 
         $api_base_url = get_option('gsxr_777_api_base_url', 'https://api.openai.com/v1');
-        $api_key = get_option('gsxr_777_api_key', '');
+        $stored_api_key = get_option('gsxr_777_api_key', '');
+        $has_api_key = !empty($stored_api_key);
+        $api_key = $has_api_key ? $this->api_key_mask : '';
         $api_model = get_option('gsxr_777_api_model', 'gpt-4o-mini');
+        $api_project_id = get_option('gsxr_777_api_project_id', '');
         $api_temperature = get_option('gsxr_777_api_temperature', 0.7);
         $api_max_tokens = get_option('gsxr_777_api_max_tokens', 1000);
 
@@ -142,6 +163,11 @@ class GSXR_777_Admin {
                 'url' => 'https://generativelanguage.googleapis.com/v1beta',
                 'key_url' => 'https://ai.google.dev/tutorials/setup',
                 'doc_url' => 'https://ai.google.dev/models'
+            ),
+            'Yandex AI' => array(
+                'url' => 'https://ai.api.cloud.yandex.net/v1',
+                'key_url' => 'https://console.yandex.cloud/iam',
+                'doc_url' => 'https://yandex.cloud/en/docs/foundation-models/'
             ),
             'Ollama' => array(
                 'url' => 'http://localhost:11434/v1',
@@ -207,8 +233,14 @@ class GSXR_777_Admin {
                         <th scope="row"><?php _e('API Key', 'gsxr-777'); ?></th>
                         <td>
                             <input type="password" name="gsxr_777_api_key" 
-                                   value="<?php echo esc_attr($api_key); ?>" class="regular-text" required />
-                            <p class="description"><?php _e('Your API key (stored encrypted)', 'gsxr-777'); ?></p>
+                                   value="<?php echo esc_attr($api_key); ?>" class="regular-text" autocomplete="new-password" />
+                            <input type="hidden" name="gsxr_777_api_key_masked" value="<?php echo $has_api_key ? '1' : '0'; ?>" />
+                            <p class="description">
+                                <?php _e('Your API key (stored encrypted). Leave blank to keep current key.', 'gsxr-777'); ?>
+                                <?php if ($has_api_key): ?>
+                                    <br /><span style="color:#1d7f1d;"><?php _e('Current key is saved.', 'gsxr-777'); ?></span>
+                                <?php endif; ?>
+                            </p>
                         </td>
                     </tr>
                     
@@ -218,6 +250,15 @@ class GSXR_777_Admin {
                             <input type="text" name="gsxr_777_api_model" 
                                    value="<?php echo esc_attr($api_model); ?>" class="regular-text" required />
                             <p class="description"><?php _e('AI model name (e.g., gpt-4o-mini, claude-3-sonnet)', 'gsxr-777'); ?></p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row"><?php _e('Project / Folder ID', 'gsxr-777'); ?></th>
+                        <td>
+                            <input type="text" name="gsxr_777_api_project_id"
+                                   value="<?php echo esc_attr($api_project_id); ?>" class="regular-text" />
+                            <p class="description"><?php _e('Optional for most providers. Required for Yandex Responses API as OpenAI-Project header value (example: b1gad9eo3bbmgfl7od3h).', 'gsxr-777'); ?></p>
                         </td>
                     </tr>
                     
@@ -299,7 +340,9 @@ class GSXR_777_Admin {
             data.append('nonce', '<?php echo wp_create_nonce('gsxr_777_test_connection'); ?>');
             data.append('api_base_url', document.querySelector('[name="gsxr_777_api_base_url"]').value);
             data.append('api_key', document.querySelector('[name="gsxr_777_api_key"]').value);
+            data.append('api_key_masked', document.querySelector('[name="gsxr_777_api_key_masked"]').value);
             data.append('api_model', document.querySelector('[name="gsxr_777_api_model"]').value);
+            data.append('api_project_id', document.querySelector('[name="gsxr_777_api_project_id"]').value);
             
             fetch(ajaxurl, {
                 method: 'POST',
@@ -670,15 +713,25 @@ class GSXR_777_Admin {
             }
             
             $api_base_url = esc_url_raw($_POST['api_base_url']);
-            $api_key = sanitize_text_field($_POST['api_key']);
+            $api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
+            $api_key_masked = isset($_POST['api_key_masked']) ? sanitize_text_field($_POST['api_key_masked']) : '0';
             $api_model = sanitize_text_field($_POST['api_model']);
-            
+            $api_project_id = isset($_POST['api_project_id']) ? sanitize_text_field($_POST['api_project_id']) : '';
+
+            $api = new GSXR_777_API();
+            $stored_encrypted_key = get_option('gsxr_777_api_key', '');
+            $is_masked_value = $api_key_masked === '1' && $api_key === $this->api_key_mask;
+
+            // If key is empty (or matches stored encrypted blob), use saved decrypted key.
+            if (empty($api_key) || $is_masked_value || (!empty($stored_encrypted_key) && hash_equals($stored_encrypted_key, $api_key))) {
+                $api_key = $api->decrypt_api_key($stored_encrypted_key);
+            }
+
             if (empty($api_base_url) || empty($api_key) || empty($api_model)) {
                 throw new Exception(__('Missing required fields', 'gsxr-777'));
             }
-            
-            $api = new GSXR_777_API();
-            $result = $api->test_connection($api_base_url, $api_key, $api_model);
+
+            $result = $api->test_connection($api_base_url, $api_key, $api_model, $api_project_id);
             
             if ($result['success']) {
                 wp_send_json_success(array('message' => __('Connection successful!', 'gsxr-777')));

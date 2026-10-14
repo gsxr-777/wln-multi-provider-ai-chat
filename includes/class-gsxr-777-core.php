@@ -234,6 +234,7 @@ class GSXR_777_Core {
         $defaults = array(
             'gsxr_777_api_base_url' => 'https://api.openai.com/v1',
             'gsxr_777_api_model' => 'gpt-4o-mini',
+            'gsxr_777_api_project_id' => '',
             'gsxr_777_api_temperature' => 0.7,
             'gsxr_777_api_max_tokens' => 1000,
             'gsxr_777_widget_title' => __('Chat', 'gsxr-777'),
@@ -275,6 +276,7 @@ class GSXR_777_Core {
             'gsxr_777_api_base_url',
             'gsxr_777_api_key',
             'gsxr_777_api_model',
+            'gsxr_777_api_project_id',
             'gsxr_777_api_temperature',
             'gsxr_777_api_max_tokens',
             'gsxr_777_widget_title',
