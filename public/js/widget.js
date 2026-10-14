@@ -1,11 +1,11 @@
 /**
- * GSXR-777 AI Chat Widget
+ * WLN Multi-Provider AI Chat Widget
  */
 
 (function () {
     'use strict';
 
-    if (typeof gsxr777Config === 'undefined') {
+    if (typeof wlnMultiProviderAIChatConfig === 'undefined') {
         return;
     }
 
@@ -14,7 +14,7 @@
     let instanceCounter = 0;
     let sharedSessionPromise = null;
 
-    class GSXR777ChatWidget {
+    class WLNMultiProviderAIChatWidget {
         constructor(config, options = {}) {
             this.config = config;
             this.mount = options.mount || document.body;
@@ -24,7 +24,7 @@
             this.strings = config.strings || {};
             this.session = null;
             this.lastFailedMessage = '';
-            this.instanceId = `gsxr777-chat-${++instanceCounter}`;
+            this.instanceId = `wln-multi-provider-ai-chat-chat-${++instanceCounter}`;
             this.colorSchemeMedia = window.matchMedia
                 ? window.matchMedia('(prefers-color-scheme: dark)')
                 : null;
@@ -54,14 +54,14 @@
 
         createWidget() {
             const container = document.createElement('section');
-            container.className = `gsxr777-chat-widget ${this.config.position || 'bottom-right'}`;
+            container.className = `wln-multi-provider-ai-chat-chat-widget ${this.config.position || 'bottom-right'}`;
             container.dataset.themeMode = this.getThemeMode();
             if (this.isInline) {
-                container.classList.add('gsxr777-chat-widget--inline');
+                container.classList.add('wln-multi-provider-ai-chat-chat-widget--inline');
             }
 
             const toggle = this.createIconButton(
-                'gsxr777-chat-toggle',
+                'wln-multi-provider-ai-chat-chat-toggle',
                 this.strings.open || this.config.title || 'Open chat',
                 '<path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="currentColor"/>'
             );
@@ -74,7 +74,7 @@
             container.appendChild(toggle);
 
             const chatWindow = document.createElement('div');
-            chatWindow.className = 'gsxr777-chat-window';
+            chatWindow.className = 'wln-multi-provider-ai-chat-chat-window';
             chatWindow.id = `${this.instanceId}-window`;
             chatWindow.setAttribute('role', 'dialog');
             chatWindow.setAttribute('aria-modal', 'false');
@@ -89,19 +89,19 @@
             }
 
             const header = document.createElement('header');
-            header.className = 'gsxr777-chat-header';
+            header.className = 'wln-multi-provider-ai-chat-chat-header';
 
             const title = document.createElement('h2');
             title.id = `${this.instanceId}-title`;
-            title.className = 'gsxr777-chat-title';
+            title.className = 'wln-multi-provider-ai-chat-chat-title';
             title.textContent = this.config.title || '';
             header.appendChild(title);
 
             const headerActions = document.createElement('div');
-            headerActions.className = 'gsxr777-chat-header-actions';
+            headerActions.className = 'wln-multi-provider-ai-chat-chat-header-actions';
 
             const clearButton = this.createIconButton(
-                'gsxr777-chat-clear',
+                'wln-multi-provider-ai-chat-chat-clear',
                 this.strings.clear || 'Clear conversation',
                 '<path d="M4 7H20M9 7V4H15V7M7 7L8 20H16L17 7M10 11V17M14 11V17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
             );
@@ -109,7 +109,7 @@
             headerActions.appendChild(clearButton);
 
             const closeButton = this.createIconButton(
-                'gsxr777-chat-close',
+                'wln-multi-provider-ai-chat-chat-close',
                 this.strings.close || 'Close',
                 '<path d="M18 6L6 18M6 6L18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
             );
@@ -122,31 +122,31 @@
             chatWindow.appendChild(header);
 
             const messages = document.createElement('div');
-            messages.className = 'gsxr777-chat-messages';
+            messages.className = 'wln-multi-provider-ai-chat-chat-messages';
             messages.setAttribute('role', 'log');
             messages.setAttribute('aria-live', 'polite');
             messages.setAttribute('aria-relevant', 'additions text');
             chatWindow.appendChild(messages);
 
             const form = document.createElement('form');
-            form.className = 'gsxr777-chat-input-container';
+            form.className = 'wln-multi-provider-ai-chat-chat-input-container';
 
             const label = document.createElement('label');
-            label.className = 'gsxr777-visually-hidden';
+            label.className = 'wln-multi-provider-ai-chat-visually-hidden';
             label.htmlFor = `${this.instanceId}-input`;
             label.textContent = this.config.placeholder || 'Type your message';
             form.appendChild(label);
 
             const input = document.createElement('textarea');
             input.id = `${this.instanceId}-input`;
-            input.className = 'gsxr777-chat-input';
+            input.className = 'wln-multi-provider-ai-chat-chat-input';
             input.placeholder = this.config.placeholder || '';
             input.rows = 1;
             input.maxLength = 5000;
             form.appendChild(input);
 
             const sendButton = this.createIconButton(
-                'gsxr777-chat-send',
+                'wln-multi-provider-ai-chat-chat-send',
                 this.strings.send || 'Send',
                 '<path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
             );
@@ -260,21 +260,21 @@
                 };
 
             const vars = {
-                '--gsxr-accent-color': primaryColor,
-                '--gsxr-accent-gradient': `linear-gradient(${gradientAngle}deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-                '--gsxr-window-bg': surfaceTheme.windowBackground,
-                '--gsxr-messages-bg': surfaceTheme.messagesBackground,
-                '--gsxr-assistant-bg': surfaceTheme.assistantBackground,
-                '--gsxr-assistant-color': surfaceTheme.assistantTextColor,
-                '--gsxr-user-color': theme.userTextColor || '#ffffff',
-                '--gsxr-input-bg': surfaceTheme.inputBackground,
-                '--gsxr-input-color': surfaceTheme.inputTextColor,
-                '--gsxr-input-border': surfaceTheme.borderColor,
-                '--gsxr-border-color': surfaceTheme.borderColor,
-                '--gsxr-widget-font-family': theme.widgetFontFamily || 'system-ui, sans-serif',
-                '--gsxr-chat-font-family': theme.chatFontFamily || 'inherit',
-                '--gsxr-widget-width': `${Math.max(300, Math.min(800, Number(this.config.width) || 400))}px`,
-                '--gsxr-widget-height': `${Math.max(400, Math.min(900, Number(this.config.height) || 600))}px`
+                '--wln-multi-provider-ai-chat-accent-color': primaryColor,
+                '--wln-multi-provider-ai-chat-accent-gradient': `linear-gradient(${gradientAngle}deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+                '--wln-multi-provider-ai-chat-window-bg': surfaceTheme.windowBackground,
+                '--wln-multi-provider-ai-chat-messages-bg': surfaceTheme.messagesBackground,
+                '--wln-multi-provider-ai-chat-assistant-bg': surfaceTheme.assistantBackground,
+                '--wln-multi-provider-ai-chat-assistant-color': surfaceTheme.assistantTextColor,
+                '--wln-multi-provider-ai-chat-user-color': theme.userTextColor || '#ffffff',
+                '--wln-multi-provider-ai-chat-input-bg': surfaceTheme.inputBackground,
+                '--wln-multi-provider-ai-chat-input-color': surfaceTheme.inputTextColor,
+                '--wln-multi-provider-ai-chat-input-border': surfaceTheme.borderColor,
+                '--wln-multi-provider-ai-chat-border-color': surfaceTheme.borderColor,
+                '--wln-multi-provider-ai-chat-widget-font-family': theme.widgetFontFamily || 'system-ui, sans-serif',
+                '--wln-multi-provider-ai-chat-chat-font-family': theme.chatFontFamily || 'inherit',
+                '--wln-multi-provider-ai-chat-widget-width': `${Math.max(300, Math.min(800, Number(this.config.width) || 400))}px`,
+                '--wln-multi-provider-ai-chat-widget-height': `${Math.max(400, Math.min(900, Number(this.config.height) || 600))}px`
             };
 
             Object.entries(vars).forEach(([name, value]) => {
@@ -310,10 +310,7 @@
                 const response = await this.fetchWithTimeout(
                     this.getUrlWithLang(this.config.configUrl),
                     {
-                        method: 'GET',
-                        headers: {
-                            'X-WP-Nonce': this.config.nonce
-                        }
+                        method: 'GET'
                     },
                     15000
                 );
@@ -445,8 +442,7 @@
 
         getSessionHeaders() {
             return {
-                'X-GSXR-Session-Token': this.session?.session_token || '',
-                'X-WP-Nonce': this.config.nonce
+                'X-WLN-Session-Token': this.session?.session_token || ''
             };
         }
 
@@ -604,7 +600,7 @@
 
         addStatusMessage(content) {
             const status = document.createElement('p');
-            status.className = 'gsxr777-chat-status';
+            status.className = 'wln-multi-provider-ai-chat-chat-status';
             status.setAttribute('role', 'status');
             status.textContent = content;
             this.messagesContainer.appendChild(status);
@@ -613,17 +609,17 @@
         addMessage(role, content, showRetry) {
             const safeRole = ['user', 'assistant', 'error'].includes(role) ? role : 'assistant';
             const message = document.createElement('div');
-            message.className = `gsxr777-chat-message ${safeRole}`;
+            message.className = `wln-multi-provider-ai-chat-chat-message ${safeRole}`;
 
             const contentElement = document.createElement('div');
-            contentElement.className = 'gsxr777-chat-message-content';
+            contentElement.className = 'wln-multi-provider-ai-chat-chat-message-content';
             contentElement.innerHTML = this.formatMessage(String(content || ''));
             message.appendChild(contentElement);
 
             if (safeRole === 'error' && showRetry) {
                 const retryButton = document.createElement('button');
                 retryButton.type = 'button';
-                retryButton.className = 'gsxr777-chat-retry';
+                retryButton.className = 'wln-multi-provider-ai-chat-chat-retry';
                 retryButton.textContent = this.strings.retry || 'Retry';
                 retryButton.addEventListener('click', () => {
                     const failedMessage = this.lastFailedMessage;
@@ -639,18 +635,18 @@
 
         addTypingIndicator() {
             const typing = document.createElement('div');
-            typing.className = 'gsxr777-chat-typing';
+            typing.className = 'wln-multi-provider-ai-chat-chat-typing';
             typing.id = `${this.instanceId}-typing-${Date.now()}`;
             typing.setAttribute('role', 'status');
 
             const label = document.createElement('span');
-            label.className = 'gsxr777-visually-hidden';
+            label.className = 'wln-multi-provider-ai-chat-visually-hidden';
             label.textContent = this.strings.typing || 'AI is typing';
             typing.appendChild(label);
 
             for (let index = 0; index < 3; index += 1) {
                 const dot = document.createElement('span');
-                dot.className = 'gsxr777-chat-typing-dot';
+                dot.className = 'wln-multi-provider-ai-chat-chat-typing-dot';
                 dot.setAttribute('aria-hidden', 'true');
                 typing.appendChild(dot);
             }
@@ -729,7 +725,7 @@
         // shortcode inside hidden/footer containers; mounting inline there
         // makes the chat invisible or gives it an unwanted white frame.
         // Keep shortcode markup harmless and mount one visible global widget.
-        new GSXR777ChatWidget(gsxr777Config);
+        new WLNMultiProviderAIChatWidget(wlnMultiProviderAIChatConfig);
     };
 
     if (document.readyState === 'loading') {
@@ -738,7 +734,7 @@
         initializeWidgets();
     }
 
-    if (window.GSXR777_DEBUG) {
-        window.GSXR777ChatWidget = GSXR777ChatWidget;
+    if (window.WLN_MULTI_PROVIDER_AI_CHAT_DEBUG) {
+        window.WLNMultiProviderAIChatWidget = WLNMultiProviderAIChatWidget;
     }
 })();

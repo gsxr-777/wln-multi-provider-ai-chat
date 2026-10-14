@@ -15,9 +15,9 @@ class WLN_Multi_Provider_AI_Chat_Core {
     private $knowledge;
     private $security;
     private $stats;
-private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
-        private const CLEANUP_HOOK = 'wln_multi_provider_ai_chat_daily_cleanup';
-        private const REBUILD_INDEX_HOOK = 'wln_multi_provider_ai_chat_rebuild_knowledge_index';
+    private const VERSION_OPTION = 'gsxr_777_plugin_version';
+    private const CLEANUP_HOOK = 'gsxr_777_daily_cleanup';
+    private const REBUILD_INDEX_HOOK = 'gsxr_777_rebuild_knowledge_index';
 
     public function __construct() {
         $this->load_dependencies();
@@ -43,9 +43,9 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
     public function register_polylang_strings() {
         // Register widget settings strings with Polylang if available
         if (function_exists('pll_register_string')) {
-            $title = trim(get_option('wln_multi_provider_ai_chat_widget_title', ''));
-            $welcome = trim(get_option('wln_multi_provider_ai_chat_widget_welcome', ''));
-            $placeholder = trim(get_option('wln_multi_provider_ai_chat_widget_placeholder', ''));
+            $title = trim(get_option('gsxr_777_widget_title', ''));
+            $welcome = trim(get_option('gsxr_777_widget_welcome', ''));
+            $placeholder = trim(get_option('gsxr_777_widget_placeholder', ''));
             
             if ($title) {
                 pll_register_string('wln-multi-provider-ai-chat-widget-title', $title, 'WLN Multi-Provider AI Chat');
@@ -60,19 +60,19 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
     }
 
     private function load_dependencies() {
-        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-gsxr-777-admin.php';
-        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-gsxr-777-widget.php';
-        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-gsxr-777-api.php';
-        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-gsxr-777-knowledge.php';
-        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-gsxr-777-security.php';
-        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-gsxr-777-stats.php';
+        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-admin.php';
+        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-widget.php';
+        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-api.php';
+        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-knowledge.php';
+        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-security.php';
+        require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-stats.php';
 
         $this->admin = new WLN_Multi_Provider_AI_Chat_Admin();
-        $this->widget = new WLN_AI_Chat_Widget();
-        $this->api = new WLN_AI_Chat_API();
-        $this->knowledge = new WLN_AI_Chat_Knowledge();
-        $this->security = new WLN_AI_Chat_Security();
-        $this->stats = new WLN_AI_Chat_Stats();
+        $this->widget = new WLN_Multi_Provider_AI_Chat_Widget();
+        $this->api = new WLN_Multi_Provider_AI_Chat_API();
+        $this->knowledge = new WLN_Multi_Provider_AI_Chat_Knowledge();
+        $this->security = new WLN_Multi_Provider_AI_Chat_Security();
+        $this->stats = new WLN_Multi_Provider_AI_Chat_Stats();
     }
 
     private function define_admin_hooks() {
@@ -94,6 +94,8 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
     private function define_public_hooks() {
         add_action('wp_enqueue_scripts', array($this->widget, 'enqueue_widget_scripts'));
         add_action('rest_api_init', array($this->widget, 'register_rest_routes'));
+        add_shortcode('wln_multi_provider_ai_chat', array($this->widget, 'render_shortcode'));
+        // Keep shortcodes already stored in posts working after the rename.
         add_shortcode('gsxr_777_chat', array($this->widget, 'render_shortcode'));
         add_action('save_post', array($this->knowledge, 'index_post'), 20, 3);
         add_action('before_delete_post', array($this->knowledge, 'delete_post_from_index'));
@@ -148,6 +150,8 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
             return false;
         }
 
+        // Storage identifiers are intentionally stable across the public rename.
+        // Never rename tables or overwrite existing settings during an update.
         // Keep schema and defaults in sync during silent plugin updates.
         self::create_tables();
         self::create_knowledge_directory();
@@ -169,13 +173,13 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
 
         $charset_collate = $wpdb->get_charset_collate();
 
-        $sessions_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_sessions');
-        $messages_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_messages');
-        $security_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_security_log');
-        $blocked_ips_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_blocked_ips');
-        $rate_limits_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_rate_limits');
-        $knowledge_chunks_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_knowledge_chunks');
-        $knowledge_documents_table = esc_sql($wpdb->prefix . 'wln_multi_provider_ai_chat_knowledge_documents');
+        $sessions_table = esc_sql($wpdb->prefix . 'gsxr777_sessions');
+        $messages_table = esc_sql($wpdb->prefix . 'gsxr777_messages');
+        $security_table = esc_sql($wpdb->prefix . 'gsxr777_security_log');
+        $blocked_ips_table = esc_sql($wpdb->prefix . 'gsxr777_blocked_ips');
+        $rate_limits_table = esc_sql($wpdb->prefix . 'gsxr777_rate_limits');
+        $knowledge_chunks_table = esc_sql($wpdb->prefix . 'gsxr777_knowledge_chunks');
+        $knowledge_documents_table = esc_sql($wpdb->prefix . 'gsxr777_knowledge_documents');
 
         $sql = "CREATE TABLE $sessions_table (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -282,7 +286,7 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
 
     private static function create_knowledge_directory() {
         $upload_dir = wp_upload_dir();
-        $knowledge_dir = $upload_dir['basedir'] . '/wln-multi-provider-ai-chat-knowledge';
+        $knowledge_dir = $upload_dir['basedir'] . '/gsxr-777-knowledge';
         
         if (!file_exists($knowledge_dir)) {
             // Create directory with error handling
@@ -312,49 +316,52 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
 
     private static function set_default_options() {
         $defaults = array(
-            'wln_multi_provider_ai_chat_api_base_url' => 'https://api.openai.com/v1',
-            'wln_multi_provider_ai_chat_api_model' => 'gpt-4o-mini',
-            'wln_multi_provider_ai_chat_api_project_id' => '',
-            'wln_multi_provider_ai_chat_api_temperature' => 0.7,
-            'wln_multi_provider_ai_chat_api_max_tokens' => 1000,
-            'wln_multi_provider_ai_chat_api_personality' => 'friendly',
-            'wln_multi_provider_ai_chat_api_top_p' => 1,
-            'wln_multi_provider_ai_chat_api_frequency_penalty' => 0,
-            'wln_multi_provider_ai_chat_api_presence_penalty' => 0,
-            'wln_multi_provider_ai_chat_api_history_limit' => 20,
-            'wln_multi_provider_ai_chat_api_system_instructions' => '',
-            'wln_multi_provider_ai_chat_widget_title' => __('Chat', 'wln-multi-provider-ai-chat'),
-            'wln_multi_provider_ai_chat_widget_welcome' => __('Hello! How can I help you?', 'wln-multi-provider-ai-chat'),
-            'wln_multi_provider_ai_chat_widget_placeholder' => __('Type your message...', 'wln-multi-provider-ai-chat'),
-            'wln_multi_provider_ai_chat_widget_position' => 'bottom-right',
-            'wln_multi_provider_ai_chat_widget_primary_color' => '#2563eb',
-            'wln_multi_provider_ai_chat_widget_secondary_color' => '#1d4ed8',
-            'wln_multi_provider_ai_chat_widget_gradient_angle' => 135,
-            'wln_multi_provider_ai_chat_widget_chat_background_color' => '#ffffff',
-            'wln_multi_provider_ai_chat_widget_messages_background_color' => '#ffffff',
-            'wln_multi_provider_ai_chat_widget_assistant_background_color' => '#f0f0f0',
-            'wln_multi_provider_ai_chat_widget_assistant_text_color' => '#333333',
-            'wln_multi_provider_ai_chat_widget_user_text_color' => '#ffffff',
-            'wln_multi_provider_ai_chat_widget_input_background_color' => '#ffffff',
-            'wln_multi_provider_ai_chat_widget_input_text_color' => '#333333',
-            'wln_multi_provider_ai_chat_widget_font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            'wln_multi_provider_ai_chat_widget_chat_font_family' => 'inherit',
-            'wln_multi_provider_ai_chat_widget_width' => 400,
-            'wln_multi_provider_ai_chat_widget_height' => 600,
-            'wln_multi_provider_ai_chat_rate_limit_requests' => 10,
-            'wln_multi_provider_ai_chat_rate_limit_window' => 60,
-            'wln_multi_provider_ai_chat_data_retention_days' => 90,
-            'wln_multi_provider_ai_chat_security_log_retention_days' => 30,
-            'wln_multi_provider_ai_chat_store_request_metadata' => false,
-            'wln_multi_provider_ai_chat_include_page_context' => true,
-            'wln_multi_provider_ai_chat_widget_theme_mode' => 'auto',
-            'wln_multi_provider_ai_chat_delete_data_on_uninstall' => false
+            'gsxr_777_api_key' => '',
+            'gsxr_777_api_base_url' => 'https://api.openai.com/v1',
+            'gsxr_777_api_model' => 'gpt-4o-mini',
+            'gsxr_777_api_project_id' => '',
+            'gsxr_777_api_temperature' => 0.7,
+            'gsxr_777_api_max_tokens' => 1000,
+            'gsxr_777_api_personality' => 'friendly',
+            'gsxr_777_api_top_p' => 1,
+            'gsxr_777_api_frequency_penalty' => 0,
+            'gsxr_777_api_presence_penalty' => 0,
+            'gsxr_777_api_history_limit' => 20,
+            'gsxr_777_api_system_instructions' => '',
+            'gsxr_777_widget_title' => 'Chat',
+            'gsxr_777_widget_welcome' => 'Hello! How can I help you?',
+            'gsxr_777_widget_placeholder' => 'Type your message...',
+            'gsxr_777_widget_position' => 'bottom-right',
+            'gsxr_777_widget_primary_color' => '#2563eb',
+            'gsxr_777_widget_secondary_color' => '#1d4ed8',
+            'gsxr_777_widget_gradient_angle' => 135,
+            'gsxr_777_widget_chat_background_color' => '#ffffff',
+            'gsxr_777_widget_messages_background_color' => '#ffffff',
+            'gsxr_777_widget_assistant_background_color' => '#f0f0f0',
+            'gsxr_777_widget_assistant_text_color' => '#333333',
+            'gsxr_777_widget_user_text_color' => '#ffffff',
+            'gsxr_777_widget_input_background_color' => '#ffffff',
+            'gsxr_777_widget_input_text_color' => '#333333',
+            'gsxr_777_widget_font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            'gsxr_777_widget_chat_font_family' => 'inherit',
+            'gsxr_777_widget_width' => 400,
+            'gsxr_777_widget_height' => 600,
+            'gsxr_777_rate_limit_requests' => 10,
+            'gsxr_777_rate_limit_window' => 60,
+            'gsxr_777_data_retention_days' => 90,
+            'gsxr_777_security_log_retention_days' => 30,
+            'gsxr_777_store_request_metadata' => false,
+            'gsxr_777_include_page_context' => true,
+            'gsxr_777_widget_theme_mode' => 'auto',
+            'gsxr_777_delete_data_on_uninstall' => false
         );
 
         foreach ($defaults as $option => $value) {
-            if (get_option($option) === false) {
-                add_option($option, $value);
-            }
+            // Recover settings from partially renamed builds only when the
+            // original option is absent. add_option never replaces saved values,
+            // including false, zero and intentionally empty strings.
+            $renamed_option = 'wln_multi_provider_ai_chat_' . substr($option, strlen('gsxr_777_'));
+            add_option($option, get_option($renamed_option, $value));
         }
     }
 
@@ -362,13 +369,13 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
         global $wpdb;
         
         $tables = array(
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_sessions',
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_messages',
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_security_log',
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_blocked_ips',
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_rate_limits',
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_knowledge_chunks',
-            $wpdb->prefix . 'wln_multi_provider_ai_chat_knowledge_documents'
+            $wpdb->prefix . 'gsxr777_sessions',
+            $wpdb->prefix . 'gsxr777_messages',
+            $wpdb->prefix . 'gsxr777_security_log',
+            $wpdb->prefix . 'gsxr777_blocked_ips',
+            $wpdb->prefix . 'gsxr777_rate_limits',
+            $wpdb->prefix . 'gsxr777_knowledge_chunks',
+            $wpdb->prefix . 'gsxr777_knowledge_documents'
         );
 
         foreach ($tables as $table) {
@@ -379,45 +386,45 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
 
     private static function delete_options() {
         $options = array(
-            'wln_multi_provider_ai_chat_api_base_url',
-            'wln_multi_provider_ai_chat_api_key',
-            'wln_multi_provider_ai_chat_api_model',
-            'wln_multi_provider_ai_chat_api_project_id',
-            'wln_multi_provider_ai_chat_api_temperature',
-            'wln_multi_provider_ai_chat_api_max_tokens',
-            'wln_multi_provider_ai_chat_api_personality',
-            'wln_multi_provider_ai_chat_api_top_p',
-            'wln_multi_provider_ai_chat_api_frequency_penalty',
-            'wln_multi_provider_ai_chat_api_presence_penalty',
-            'wln_multi_provider_ai_chat_api_history_limit',
-            'wln_multi_provider_ai_chat_api_system_instructions',
-            'wln_multi_provider_ai_chat_widget_title',
-            'wln_multi_provider_ai_chat_widget_welcome',
-            'wln_multi_provider_ai_chat_widget_placeholder',
-            'wln_multi_provider_ai_chat_widget_position',
-            'wln_multi_provider_ai_chat_widget_primary_color',
-            'wln_multi_provider_ai_chat_widget_secondary_color',
-            'wln_multi_provider_ai_chat_widget_gradient_angle',
-            'wln_multi_provider_ai_chat_widget_chat_background_color',
-            'wln_multi_provider_ai_chat_widget_messages_background_color',
-            'wln_multi_provider_ai_chat_widget_assistant_background_color',
-            'wln_multi_provider_ai_chat_widget_assistant_text_color',
-            'wln_multi_provider_ai_chat_widget_user_text_color',
-            'wln_multi_provider_ai_chat_widget_input_background_color',
-            'wln_multi_provider_ai_chat_widget_input_text_color',
-            'wln_multi_provider_ai_chat_widget_font_family',
-            'wln_multi_provider_ai_chat_widget_chat_font_family',
-            'wln_multi_provider_ai_chat_widget_width',
-            'wln_multi_provider_ai_chat_widget_height',
-            'wln_multi_provider_ai_chat_rate_limit_requests',
-            'wln_multi_provider_ai_chat_rate_limit_window',
-            'wln_multi_provider_ai_chat_data_retention_days',
-            'wln_multi_provider_ai_chat_security_log_retention_days',
-            'wln_multi_provider_ai_chat_store_request_metadata',
-            'wln_multi_provider_ai_chat_include_page_context',
-            'wln_multi_provider_ai_chat_widget_theme_mode',
-            'wln_multi_provider_ai_chat_delete_data_on_uninstall',
-            'wln_multi_provider_ai_chat_legacy_knowledge_migrated',
+            'gsxr_777_api_base_url',
+            'gsxr_777_api_key',
+            'gsxr_777_api_model',
+            'gsxr_777_api_project_id',
+            'gsxr_777_api_temperature',
+            'gsxr_777_api_max_tokens',
+            'gsxr_777_api_personality',
+            'gsxr_777_api_top_p',
+            'gsxr_777_api_frequency_penalty',
+            'gsxr_777_api_presence_penalty',
+            'gsxr_777_api_history_limit',
+            'gsxr_777_api_system_instructions',
+            'gsxr_777_widget_title',
+            'gsxr_777_widget_welcome',
+            'gsxr_777_widget_placeholder',
+            'gsxr_777_widget_position',
+            'gsxr_777_widget_primary_color',
+            'gsxr_777_widget_secondary_color',
+            'gsxr_777_widget_gradient_angle',
+            'gsxr_777_widget_chat_background_color',
+            'gsxr_777_widget_messages_background_color',
+            'gsxr_777_widget_assistant_background_color',
+            'gsxr_777_widget_assistant_text_color',
+            'gsxr_777_widget_user_text_color',
+            'gsxr_777_widget_input_background_color',
+            'gsxr_777_widget_input_text_color',
+            'gsxr_777_widget_font_family',
+            'gsxr_777_widget_chat_font_family',
+            'gsxr_777_widget_width',
+            'gsxr_777_widget_height',
+            'gsxr_777_rate_limit_requests',
+            'gsxr_777_rate_limit_window',
+            'gsxr_777_data_retention_days',
+            'gsxr_777_security_log_retention_days',
+            'gsxr_777_store_request_metadata',
+            'gsxr_777_include_page_context',
+            'gsxr_777_widget_theme_mode',
+            'gsxr_777_delete_data_on_uninstall',
+            'gsxr_777_legacy_knowledge_migrated',
             self::VERSION_OPTION
         );
 
@@ -428,7 +435,7 @@ private const VERSION_OPTION = 'wln_multi_provider_ai_chat_plugin_version';
 
     private static function delete_knowledge_directory() {
         $upload_dir = wp_upload_dir();
-        $knowledge_dir = $upload_dir['basedir'] . '/wln-multi-provider-ai-chat-knowledge';
+        $knowledge_dir = $upload_dir['basedir'] . '/gsxr-777-knowledge';
         
         if (file_exists($knowledge_dir)) {
             // Only delete files owned by the plugin.

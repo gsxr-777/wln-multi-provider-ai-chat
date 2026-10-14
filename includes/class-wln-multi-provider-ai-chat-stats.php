@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WLN_AI_Chat_Stats {
+class WLN_Multi_Provider_AI_Chat_Stats {
 
     public function __construct() {
         // Constructor
@@ -33,10 +33,10 @@ class WLN_AI_Chat_Stats {
             ));
 
             if ($result === false && !empty($wpdb->last_error)) {
-                error_log('GSXR-777: Failed to store session');
+                error_log('WLN Multi-Provider AI Chat: Failed to store session');
             }
         } catch (Exception $e) {
-            error_log('GSXR-777: Session tracking error - ' . $e->getMessage());
+            error_log('WLN Multi-Provider AI Chat: Session tracking error - ' . $e->getMessage());
         }
     }
 
@@ -287,7 +287,7 @@ class WLN_AI_Chat_Stats {
             
             return $deleted;
         } catch (Exception $e) {
-            error_log('GSXR-777: Cleanup error - ' . $e->getMessage());
+            error_log('WLN Multi-Provider AI Chat: Cleanup error - ' . $e->getMessage());
             return 0;
         }
     }

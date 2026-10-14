@@ -7,8 +7,8 @@
  * @link       https://wln.su/
  * @since      1.0.0
  *
- * @package    Gsxr_777
- * @subpackage Gsxr_777/admin/partials
+ * @package    WLN_Multi_Provider_AI_Chat
+ * @subpackage WLN_Multi_Provider_AI_Chat/admin/partials
  */
 
 if (!defined('ABSPATH')) {
@@ -19,16 +19,16 @@ if (!defined('ABSPATH')) {
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div class="wrap">
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-    <div id="gsxr777-knowledge-manager">
+    <div id="wln-multi-provider-ai-chat-knowledge-manager">
         <div class="knowledge-toolbar">
-            <button type="button" id="gsxr777-add-file" class="button button-primary"><?php esc_html_e('Add New File', 'gsxr-777-ai-open-chat'); ?></button>
-            <input type="file" id="gsxr777-upload-file" accept=".md" hidden>
-            <button type="button" id="gsxr777-upload-btn" class="button"><?php esc_html_e('Upload File', 'gsxr-777-ai-open-chat'); ?></button>
+            <button type="button" id="wln-multi-provider-ai-chat-add-file" class="button button-primary"><?php esc_html_e('Add New File', 'wln-multi-provider-ai-chat'); ?></button>
+            <input type="file" id="wln-multi-provider-ai-chat-upload-file" accept=".md" hidden>
+            <button type="button" id="wln-multi-provider-ai-chat-upload-btn" class="button"><?php esc_html_e('Upload File', 'wln-multi-provider-ai-chat'); ?></button>
         </div>
-        <div id="gsxr777-file-list">
+        <div id="wln-multi-provider-ai-chat-file-list">
             <!-- File list will be populated via AJAX -->
         </div>
-        <div id="gsxr777-file-editor" hidden>
+        <div id="wln-multi-provider-ai-chat-file-editor" hidden>
             <!-- Editor will be populated when file is selected -->
         </div>
     </div>

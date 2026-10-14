@@ -7,8 +7,8 @@
  * @link       https://wln.su/
  * @since      1.0.0
  *
- * @package    Gsxr_777
- * @subpackage Gsxr_777/admin/partials
+ * @package    WLN_Multi_Provider_AI_Chat
+ * @subpackage WLN_Multi_Provider_AI_Chat/admin/partials
  */
 
 if (!defined('ABSPATH')) {

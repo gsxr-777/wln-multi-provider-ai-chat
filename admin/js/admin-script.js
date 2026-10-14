@@ -1,15 +1,15 @@
 /**
- * GSXR-777 admin interactions.
+ * WLN Multi-Provider AI Chat admin interactions.
  */
 
 (function () {
     'use strict';
 
-    if (typeof gsxr777_ajax === 'undefined') {
+    if (typeof wlnMultiProviderAIChatAdmin === 'undefined') {
         return;
     }
 
-    const strings = gsxr777_ajax.strings || {};
+    const strings = wlnMultiProviderAIChatAdmin.strings || {};
 
     const showNotice = (container, type, message) => {
         if (!container) {
@@ -25,7 +25,7 @@
     };
 
     const postAjax = async (data) => {
-        const response = await fetch(gsxr777_ajax.ajax_url, {
+        const response = await fetch(wlnMultiProviderAIChatAdmin.ajax_url, {
             method: 'POST',
             credentials: 'same-origin',
             body: data
@@ -76,7 +76,7 @@
         button.addEventListener('click', async () => {
             const data = new FormData();
             data.append('action', 'gsxr_777_test_connection');
-            data.append('nonce', gsxr777_ajax.testNonce);
+            data.append('nonce', wlnMultiProviderAIChatAdmin.testNonce);
 
             const fields = {
                 api_base_url: 'gsxr_777_api_base_url',
@@ -115,18 +115,18 @@
             return;
         }
 
-        document.getElementById('gsxr777-new-file')?.addEventListener('click', () => {
+        document.getElementById('wln-multi-provider-ai-chat-new-file')?.addEventListener('click', () => {
             filenameField.value = '';
             contentField.value = '';
             filenameField.focus();
         });
 
-        const rebuildButton = document.getElementById('gsxr777-rebuild-index');
-        const rebuildStatus = document.getElementById('gsxr777-index-status');
+        const rebuildButton = document.getElementById('wln-multi-provider-ai-chat-rebuild-index');
+        const rebuildStatus = document.getElementById('wln-multi-provider-ai-chat-index-status');
         rebuildButton?.addEventListener('click', async () => {
             const data = new FormData();
             data.append('action', 'gsxr_777_rebuild_knowledge_index');
-            data.append('nonce', gsxr777_ajax.knowledgeNonce);
+            data.append('nonce', wlnMultiProviderAIChatAdmin.knowledgeNonce);
             rebuildButton.disabled = true;
             if (rebuildStatus) {
                 rebuildStatus.textContent = strings.testing || 'Working...';
@@ -149,13 +149,13 @@
             }
         });
 
-        document.querySelectorAll('.gsxr777-load-file').forEach((link) => {
+        document.querySelectorAll('.wln-multi-provider-ai-chat-load-file').forEach((link) => {
             link.addEventListener('click', async (event) => {
                 event.preventDefault();
                 const filename = link.dataset.filename || '';
                 const data = new FormData();
                 data.append('action', 'gsxr_777_get_knowledge_file');
-                data.append('nonce', gsxr777_ajax.knowledgeNonce);
+                data.append('nonce', wlnMultiProviderAIChatAdmin.knowledgeNonce);
                 data.append('filename', filename);
 
                 try {
@@ -172,7 +172,7 @@
             });
         });
 
-        document.querySelectorAll('.gsxr777-delete-file').forEach((button) => {
+        document.querySelectorAll('.wln-multi-provider-ai-chat-delete-file').forEach((button) => {
             button.addEventListener('click', async () => {
                 if (!window.confirm(strings.deleteConfirm || 'Delete this file?')) {
                     return;
@@ -180,7 +180,7 @@
 
                 const data = new FormData();
                 data.append('action', 'gsxr_777_delete_knowledge_file');
-                data.append('nonce', gsxr777_ajax.knowledgeNonce);
+                data.append('nonce', wlnMultiProviderAIChatAdmin.knowledgeNonce);
                 data.append('filename', button.dataset.filename || '');
                 button.disabled = true;
 
@@ -199,7 +199,7 @@
     };
 
     const setupStatistics = () => {
-        const period = document.getElementById('gsxr777-stats-period');
+        const period = document.getElementById('wln-multi-provider-ai-chat-stats-period');
         period?.addEventListener('change', () => period.form?.submit());
     };
 

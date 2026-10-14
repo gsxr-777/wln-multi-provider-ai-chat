@@ -17,48 +17,48 @@ class WLN_Multi_Provider_AI_Chat_Admin {
 
     public function add_admin_menu() {
         add_menu_page(
-            __('GSXR-777 AI Chat', 'gsxr-777-ai-open-chat'),
-            __('AI Chat', 'gsxr-777-ai-open-chat'),
+            __('WLN Multi-Provider AI Chat', 'wln-multi-provider-ai-chat'),
+            __('AI Chat', 'wln-multi-provider-ai-chat'),
             'manage_options',
-            'gsxr-777-ai-chat',
+            'wln-multi-provider-ai-chat-ai-chat',
             array($this, 'render_api_settings_page'),
             'dashicons-format-chat',
             30
         );
 
         add_submenu_page(
-            'gsxr-777-ai-chat',
-            __('API Settings', 'gsxr-777-ai-open-chat'),
-            __('API Settings', 'gsxr-777-ai-open-chat'),
+            'wln-multi-provider-ai-chat-ai-chat',
+            __('API Settings', 'wln-multi-provider-ai-chat'),
+            __('API Settings', 'wln-multi-provider-ai-chat'),
             'manage_options',
-            'gsxr-777-ai-chat',
+            'wln-multi-provider-ai-chat-ai-chat',
             array($this, 'render_api_settings_page')
         );
 
         add_submenu_page(
-            'gsxr-777-ai-chat',
-            __('Knowledge Base', 'gsxr-777-ai-open-chat'),
-            __('Knowledge Base', 'gsxr-777-ai-open-chat'),
+            'wln-multi-provider-ai-chat-ai-chat',
+            __('Knowledge Base', 'wln-multi-provider-ai-chat'),
+            __('Knowledge Base', 'wln-multi-provider-ai-chat'),
             'manage_options',
-            'gsxr-777-knowledge',
+            'wln-multi-provider-ai-chat-knowledge',
             array($this, 'render_knowledge_page')
         );
 
         add_submenu_page(
-            'gsxr-777-ai-chat',
-            __('Widget Settings', 'gsxr-777-ai-open-chat'),
-            __('Widget Settings', 'gsxr-777-ai-open-chat'),
+            'wln-multi-provider-ai-chat-ai-chat',
+            __('Widget Settings', 'wln-multi-provider-ai-chat'),
+            __('Widget Settings', 'wln-multi-provider-ai-chat'),
             'manage_options',
-            'gsxr-777-widget',
+            'wln-multi-provider-ai-chat-widget',
             array($this, 'render_widget_settings_page')
         );
 
         add_submenu_page(
-            'gsxr-777-ai-chat',
-            __('Statistics', 'gsxr-777-ai-open-chat'),
-            __('Statistics', 'gsxr-777-ai-open-chat'),
+            'wln-multi-provider-ai-chat-ai-chat',
+            __('Statistics', 'wln-multi-provider-ai-chat'),
+            __('Statistics', 'wln-multi-provider-ai-chat'),
             'manage_options',
-            'gsxr-777-stats',
+            'wln-multi-provider-ai-chat-stats',
             array($this, 'render_statistics_page')
         );
     }
@@ -178,6 +178,10 @@ class WLN_Multi_Provider_AI_Chat_Admin {
     }
 
     public function render_api_settings_page() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
+        }
+
         if (isset($_POST['submit'])) {
             check_admin_referer('gsxr_777_api_settings');
 
@@ -186,14 +190,14 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             );
             if ($api_base_url === '') {
                 echo '<div class="notice notice-error"><p>' .
-                    esc_html__('Use HTTPS for remote API endpoints. Plain HTTP is allowed only for local services.', 'gsxr-777-ai-open-chat') .
+                    esc_html__('Use HTTPS for remote API endpoints. Plain HTTP is allowed only for local services.', 'wln-multi-provider-ai-chat') .
                     '</p></div>';
                 return;
             }
             update_option('gsxr_777_api_base_url', $api_base_url);
 
             // Encrypt API key before saving
-            $api = new WLN_AI_Chat_API();
+            $api = new WLN_Multi_Provider_AI_Chat_API();
             $stored_encrypted_key = get_option('gsxr_777_api_key', '');
             $submitted_api_key = isset($_POST['gsxr_777_api_key'])
                 ? sanitize_text_field(wp_unslash($_POST['gsxr_777_api_key']))
@@ -209,7 +213,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                     $encrypted_key = $api->encrypt_api_key($submitted_api_key);
                     if ($encrypted_key === '') {
                         echo '<div class="notice notice-error"><p>' .
-                            esc_html__('The API key could not be encrypted. Settings were not saved.', 'gsxr-777-ai-open-chat') .
+                            esc_html__('The API key could not be encrypted. Settings were not saved.', 'wln-multi-provider-ai-chat') .
                             '</p></div>';
                         return;
                     }
@@ -233,7 +237,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             update_option('gsxr_777_include_page_context', isset($_POST['gsxr_777_include_page_context']));
             update_option('gsxr_777_delete_data_on_uninstall', isset($_POST['gsxr_777_delete_data_on_uninstall']));
             
-            echo '<div class="notice notice-success"><p>' . esc_html__('Settings saved successfully!', 'gsxr-777-ai-open-chat') . '</p></div>';
+            echo '<div class="notice notice-success"><p>' . esc_html__('Settings saved successfully!', 'wln-multi-provider-ai-chat') . '</p></div>';
         }
 
         $api_base_url = get_option('gsxr_777_api_base_url', 'https://api.openai.com/v1');
@@ -257,14 +261,14 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         $delete_data_on_uninstall = (bool) get_option('gsxr_777_delete_data_on_uninstall', false);
 
         $personality_options = array(
-            'friendly' => __('Friendly', 'gsxr-777-ai-open-chat'),
-            'sarcastic' => __('Sarcastic', 'gsxr-777-ai-open-chat'),
-            'pragmatic' => __('Pragmatic', 'gsxr-777-ai-open-chat'),
-            'funny' => __('Funny', 'gsxr-777-ai-open-chat'),
-            'formal' => __('Formal', 'gsxr-777-ai-open-chat'),
-            'empathetic' => __('Empathetic', 'gsxr-777-ai-open-chat'),
-            'expert' => __('Expert', 'gsxr-777-ai-open-chat'),
-            'concise' => __('Concise', 'gsxr-777-ai-open-chat')
+            'friendly' => __('Friendly', 'wln-multi-provider-ai-chat'),
+            'sarcastic' => __('Sarcastic', 'wln-multi-provider-ai-chat'),
+            'pragmatic' => __('Pragmatic', 'wln-multi-provider-ai-chat'),
+            'funny' => __('Funny', 'wln-multi-provider-ai-chat'),
+            'formal' => __('Formal', 'wln-multi-provider-ai-chat'),
+            'empathetic' => __('Empathetic', 'wln-multi-provider-ai-chat'),
+            'expert' => __('Expert', 'wln-multi-provider-ai-chat'),
+            'concise' => __('Concise', 'wln-multi-provider-ai-chat')
         );
 
         $providers = array(
@@ -301,18 +305,18 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         );
 
         ?>
-        <div class="wrap gsxr777-admin-page">
-            <h1><?php esc_html_e('API Settings', 'gsxr-777-ai-open-chat'); ?></h1>
+        <div class="wrap wln-multi-provider-ai-chat-admin-page">
+            <h1><?php esc_html_e('API Settings', 'wln-multi-provider-ai-chat'); ?></h1>
             
             <form method="post" action="">
                 <?php wp_nonce_field('gsxr_777_api_settings'); ?>
                 
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><?php esc_html_e('AI Provider', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('AI Provider', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <select id="ai_provider">
-                                <option value=""><?php esc_html_e('Select Provider', 'gsxr-777-ai-open-chat'); ?></option>
+                                <option value=""><?php esc_html_e('Select Provider', 'wln-multi-provider-ai-chat'); ?></option>
                                 <?php foreach ($providers as $name => $config): ?>
                                     <option value="<?php echo esc_attr($config['url']); ?>" 
                                             data-key-url="<?php echo esc_attr($config['key_url']); ?>"
@@ -323,13 +327,13 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                                 <?php endforeach; ?>
                             </select>
                             <p class="description">
-                                <?php esc_html_e('Choose your AI provider', 'gsxr-777-ai-open-chat'); ?><br />
-                                <span id="provider_links" class="gsxr777-provider-links">
-                                    <a id="key_link" href="#" target="_blank" rel="noopener noreferrer" class="gsxr777-provider-link">
-                                        🔑 <?php esc_html_e('Get API Key', 'gsxr-777-ai-open-chat'); ?>
+                                <?php esc_html_e('Choose your AI provider', 'wln-multi-provider-ai-chat'); ?><br />
+                                <span id="provider_links" class="wln-multi-provider-ai-chat-provider-links">
+                                    <a id="key_link" href="#" target="_blank" rel="noopener noreferrer" class="wln-multi-provider-ai-chat-provider-link">
+                                        🔑 <?php esc_html_e('Get API Key', 'wln-multi-provider-ai-chat'); ?>
                                     </a>
-                                    <a id="doc_link" href="#" target="_blank" rel="noopener noreferrer" class="gsxr777-provider-link">
-                                        📚 <?php esc_html_e('API Documentation', 'gsxr-777-ai-open-chat'); ?>
+                                    <a id="doc_link" href="#" target="_blank" rel="noopener noreferrer" class="wln-multi-provider-ai-chat-provider-link">
+                                        📚 <?php esc_html_e('API Documentation', 'wln-multi-provider-ai-chat'); ?>
                                     </a>
                                 </span>
                             </p>
@@ -337,69 +341,69 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                     </tr>
                     
                     <tr>
-                        <th scope="row"><?php esc_html_e('API Base URL', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('API Base URL', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="url" id="gsxr_777_api_base_url" name="gsxr_777_api_base_url" 
                                    value="<?php echo esc_attr($api_base_url); ?>" class="regular-text" required />
-                            <p class="description"><?php esc_html_e('Base URL for the AI API endpoint', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Base URL for the AI API endpoint', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
                     
                     <tr>
-                        <th scope="row"><?php esc_html_e('API Key', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('API Key', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="password" name="gsxr_777_api_key" 
                                    value="<?php echo esc_attr($api_key); ?>" class="regular-text" autocomplete="new-password" />
                             <input type="hidden" name="gsxr_777_api_key_masked" value="<?php echo $has_api_key ? '1' : '0'; ?>" />
                             <p class="description">
-                                <?php esc_html_e('Your API key (stored encrypted). Leave blank to keep current key.', 'gsxr-777-ai-open-chat'); ?>
+                                <?php esc_html_e('Your API key (stored encrypted). Leave blank to keep current key.', 'wln-multi-provider-ai-chat'); ?>
                                 <?php if ($has_api_key): ?>
-                                    <br /><span class="gsxr777-key-saved"><?php esc_html_e('Current key is saved.', 'gsxr-777-ai-open-chat'); ?></span>
+                                    <br /><span class="wln-multi-provider-ai-chat-key-saved"><?php esc_html_e('Current key is saved.', 'wln-multi-provider-ai-chat'); ?></span>
                                 <?php endif; ?>
                             </p>
                         </td>
                     </tr>
                     
                     <tr>
-                        <th scope="row"><?php esc_html_e('Model', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Model', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="text" name="gsxr_777_api_model" 
                                    value="<?php echo esc_attr($api_model); ?>" class="regular-text" required />
-                            <p class="description"><?php esc_html_e('AI model name (e.g., gpt-4o-mini, claude-3-sonnet)', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('AI model name (e.g., gpt-4o-mini, claude-3-sonnet)', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Project / Folder ID', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Project / Folder ID', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="text" name="gsxr_777_api_project_id"
                                    value="<?php echo esc_attr($api_project_id); ?>" class="regular-text" />
-                            <p class="description"><?php esc_html_e('Optional for most providers. Required for Yandex Responses API as OpenAI-Project header value (example: b1gad9eo3bbmgfl7od3h).', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Optional for most providers. Required for Yandex Responses API as OpenAI-Project header value (example: b1gad9eo3bbmgfl7od3h).', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
                     
                     <tr>
-                        <th scope="row"><?php esc_html_e('Temperature', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Temperature', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="number" name="gsxr_777_api_temperature" 
                                    value="<?php echo esc_attr($api_temperature); ?>" 
                                    min="0" max="2" step="0.1" class="small-text" />
-                            <p class="description"><?php esc_html_e('Controls randomness (0.0 = deterministic, 2.0 = very random)', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Controls randomness (0.0 = deterministic, 2.0 = very random)', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
                     
                     <tr>
-                        <th scope="row"><?php esc_html_e('Max Tokens', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Max Tokens', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="number" name="gsxr_777_api_max_tokens" 
                                    value="<?php echo esc_attr($api_max_tokens); ?>" 
                                    min="1" max="4000" class="small-text" />
-                            <p class="description"><?php esc_html_e('Maximum tokens in response', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Maximum tokens in response', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Assistant Personality', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Assistant Personality', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <select name="gsxr_777_api_personality">
                                 <?php foreach ($personality_options as $value => $label): ?>
@@ -408,111 +412,111 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                            <p class="description"><?php esc_html_e('Defines the tone of model responses (friendly, sarcastic, pragmatic, funny, etc.).', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Defines the tone of model responses (friendly, sarcastic, pragmatic, funny, etc.).', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Top P', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Top P', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="number" name="gsxr_777_api_top_p"
                                    value="<?php echo esc_attr($api_top_p); ?>"
                                    min="0" max="1" step="0.05" class="small-text" />
-                            <p class="description"><?php esc_html_e('Nucleus sampling threshold (0.0-1.0). Lower values make output more focused.', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Nucleus sampling threshold (0.0-1.0). Lower values make output more focused.', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Frequency Penalty', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Frequency Penalty', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="number" name="gsxr_777_api_frequency_penalty"
                                    value="<?php echo esc_attr($api_frequency_penalty); ?>"
                                    min="-2" max="2" step="0.1" class="small-text" />
-                            <p class="description"><?php esc_html_e('Reduces repetitive words or phrases (-2.0 to 2.0).', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Reduces repetitive words or phrases (-2.0 to 2.0).', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Presence Penalty', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Presence Penalty', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="number" name="gsxr_777_api_presence_penalty"
                                    value="<?php echo esc_attr($api_presence_penalty); ?>"
                                    min="-2" max="2" step="0.1" class="small-text" />
-                            <p class="description"><?php esc_html_e('Encourages introducing new topics (-2.0 to 2.0).', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Encourages introducing new topics (-2.0 to 2.0).', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Conversation Context Size', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Conversation Context Size', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <input type="number" name="gsxr_777_api_history_limit"
                                    value="<?php echo esc_attr($api_history_limit); ?>"
                                    min="1" max="100" class="small-text" />
-                            <p class="description"><?php esc_html_e('How many previous messages are sent to the model as context.', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('How many previous messages are sent to the model as context.', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Additional System Instructions', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Additional System Instructions', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <textarea name="gsxr_777_api_system_instructions" rows="4" class="large-text"><?php echo esc_textarea($api_system_instructions); ?></textarea>
-                            <p class="description"><?php esc_html_e('Extra rules for the assistant behavior. Applies to every request.', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p class="description"><?php esc_html_e('Extra rules for the assistant behavior. Applies to every request.', 'wln-multi-provider-ai-chat'); ?></p>
                         </td>
                     </tr>
 
                     <tr>
                         <th scope="row">
-                            <label for="gsxr_777_data_retention_days"><?php esc_html_e('Chat Data Retention', 'gsxr-777-ai-open-chat'); ?></label>
+                            <label for="gsxr_777_data_retention_days"><?php esc_html_e('Chat Data Retention', 'wln-multi-provider-ai-chat'); ?></label>
                         </th>
                         <td>
                             <input type="number" id="gsxr_777_data_retention_days" name="gsxr_777_data_retention_days"
                                    value="<?php echo esc_attr($data_retention_days); ?>"
                                    min="1" max="3650" class="small-text" />
-                            <span><?php esc_html_e('days', 'gsxr-777-ai-open-chat'); ?></span>
+                            <span><?php esc_html_e('days', 'wln-multi-provider-ai-chat'); ?></span>
                         </td>
                     </tr>
 
                     <tr>
                         <th scope="row">
-                            <label for="gsxr_777_security_log_retention_days"><?php esc_html_e('Security Log Retention', 'gsxr-777-ai-open-chat'); ?></label>
+                            <label for="gsxr_777_security_log_retention_days"><?php esc_html_e('Security Log Retention', 'wln-multi-provider-ai-chat'); ?></label>
                         </th>
                         <td>
                             <input type="number" id="gsxr_777_security_log_retention_days" name="gsxr_777_security_log_retention_days"
                                    value="<?php echo esc_attr($security_log_retention_days); ?>"
                                    min="1" max="3650" class="small-text" />
-                            <span><?php esc_html_e('days', 'gsxr-777-ai-open-chat'); ?></span>
+                            <span><?php esc_html_e('days', 'wln-multi-provider-ai-chat'); ?></span>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Page Context', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Page Context', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="gsxr_777_include_page_context" value="1"
                                        <?php checked($include_page_context); ?> />
-                                <?php esc_html_e('Send limited current-page text to the configured AI provider.', 'gsxr-777-ai-open-chat'); ?>
+                                <?php esc_html_e('Send limited current-page text to the configured AI provider.', 'wln-multi-provider-ai-chat'); ?>
                             </label>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Request Metadata', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Request Metadata', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="gsxr_777_store_request_metadata" value="1"
                                        <?php checked($store_request_metadata); ?> />
-                                <?php esc_html_e('Store anonymized IP and a shortened browser user agent for diagnostics.', 'gsxr-777-ai-open-chat'); ?>
+                                <?php esc_html_e('Store anonymized IP and a shortened browser user agent for diagnostics.', 'wln-multi-provider-ai-chat'); ?>
                             </label>
                         </td>
                     </tr>
 
                     <tr>
-                        <th scope="row"><?php esc_html_e('Delete Data on Uninstall', 'gsxr-777-ai-open-chat'); ?></th>
+                        <th scope="row"><?php esc_html_e('Delete Data on Uninstall', 'wln-multi-provider-ai-chat'); ?></th>
                         <td>
                             <label>
                                 <input type="checkbox" name="gsxr_777_delete_data_on_uninstall" value="1"
                                        <?php checked($delete_data_on_uninstall); ?> />
-                                <?php esc_html_e('Permanently remove chat history, settings, and mini-RAG data when the plugin is deleted.', 'gsxr-777-ai-open-chat'); ?>
+                                <?php esc_html_e('Permanently remove chat history, settings, and mini-RAG data when the plugin is deleted.', 'wln-multi-provider-ai-chat'); ?>
                             </label>
                         </td>
                     </tr>
@@ -520,21 +524,25 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 
                 <p class="submit">
                     <input type="submit" name="submit" class="button-primary" 
-                           value="<?php esc_html_e('Save Settings', 'gsxr-777-ai-open-chat'); ?>" />
+                           value="<?php esc_html_e('Save Settings', 'wln-multi-provider-ai-chat'); ?>" />
                     <button type="button" id="test_connection" class="button">
-                        <?php esc_html_e('Test Connection', 'gsxr-777-ai-open-chat'); ?>
+                        <?php esc_html_e('Test Connection', 'wln-multi-provider-ai-chat'); ?>
                     </button>
                 </p>
             </form>
             
-            <div id="test_result" class="gsxr777-test-result" role="status" aria-live="polite"></div>
+            <div id="test_result" class="wln-multi-provider-ai-chat-test-result" role="status" aria-live="polite"></div>
         </div>
         
         <?php
     }
 
     public function render_knowledge_page() {
-        $knowledge = new WLN_AI_Chat_Knowledge();
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
+        }
+
+        $knowledge = new WLN_Multi_Provider_AI_Chat_Knowledge();
         $files = $knowledge->get_all_files();
         $index_stats = $knowledge->get_index_stats();
         
@@ -545,9 +553,9 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             $content = $this->get_post_value('content');
             
             if ($knowledge->save_file($filename, $content)) {
-                echo '<div class="notice notice-success"><p>' . esc_html__('File saved successfully!', 'gsxr-777-ai-open-chat') . '</p></div>';
+                echo '<div class="notice notice-success"><p>' . esc_html__('File saved successfully!', 'wln-multi-provider-ai-chat') . '</p></div>';
             } else {
-                echo '<div class="notice notice-error"><p>' . esc_html__('Error saving file!', 'gsxr-777-ai-open-chat') . '</p></div>';
+                echo '<div class="notice notice-error"><p>' . esc_html__('Error saving file!', 'wln-multi-provider-ai-chat') . '</p></div>';
             }
             
             $files = $knowledge->get_all_files(); // Refresh file list
@@ -555,40 +563,40 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         
         // Render Knowledge page HTML
         ?>
-        <div class="wrap gsxr777-admin-page gsxr777-admin">
-            <h1><?php esc_html_e('Knowledge Base', 'gsxr-777-ai-open-chat'); ?></h1>
+        <div class="wrap wln-multi-provider-ai-chat-admin-page wln-multi-provider-ai-chat-admin">
+            <h1><?php esc_html_e('Knowledge Base', 'wln-multi-provider-ai-chat'); ?></h1>
             <p>
                 <?php
                 echo esc_html(sprintf(
                     /* translators: 1: Number of indexed sources, 2: Number of indexed text chunks. */
-                    __('Mini-RAG index: %1$d sources, %2$d chunks.', 'gsxr-777-ai-open-chat'),
+                    __('Mini-RAG index: %1$d sources, %2$d chunks.', 'wln-multi-provider-ai-chat'),
                     $index_stats['sources'],
                     $index_stats['chunks']
                 ));
                 ?>
-                <button type="button" id="gsxr777-rebuild-index" class="button">
-                    <?php esc_html_e('Rebuild site index', 'gsxr-777-ai-open-chat'); ?>
+                <button type="button" id="wln-multi-provider-ai-chat-rebuild-index" class="button">
+                    <?php esc_html_e('Rebuild site index', 'wln-multi-provider-ai-chat'); ?>
                 </button>
-                <span id="gsxr777-index-status" class="gsxr777-index-status" role="status" aria-live="polite"></span>
+                <span id="wln-multi-provider-ai-chat-index-status" class="wln-multi-provider-ai-chat-index-status" role="status" aria-live="polite"></span>
             </p>
             
-            <div class="gsxr777-knowledge-container">
-                <div class="gsxr777-knowledge-sidebar">
-                    <h2><?php esc_html_e('Files', 'gsxr-777-ai-open-chat'); ?></h2>
+            <div class="wln-multi-provider-ai-chat-knowledge-container">
+                <div class="wln-multi-provider-ai-chat-knowledge-sidebar">
+                    <h2><?php esc_html_e('Files', 'wln-multi-provider-ai-chat'); ?></h2>
                     <div id="file_list">
                         <?php if (empty($files)): ?>
-                            <p><?php esc_html_e('No knowledge files found.', 'gsxr-777-ai-open-chat'); ?></p>
+                            <p><?php esc_html_e('No knowledge files found.', 'wln-multi-provider-ai-chat'); ?></p>
                         <?php else: ?>
-                            <ul class="gsxr777-file-list">
+                            <ul class="wln-multi-provider-ai-chat-file-list">
                                 <?php foreach ($files as $file): ?>
                                     <li>
-                                        <button type="button" class="button-link gsxr777-load-file" data-filename="<?php echo esc_attr($file['name']); ?>">
+                                        <button type="button" class="button-link wln-multi-provider-ai-chat-load-file" data-filename="<?php echo esc_attr($file['name']); ?>">
                                             <?php echo esc_html($file['name']); ?>
                                         </button>
                                         <small>(<?php echo esc_html($file['modified']); ?>)</small>
                                         <button type="button" data-filename="<?php echo esc_attr($file['name']); ?>"
-                                                class="button button-small gsxr777-delete-file">
-                                            <?php esc_html_e('Delete', 'gsxr-777-ai-open-chat'); ?>
+                                                class="button button-small wln-multi-provider-ai-chat-delete-file">
+                                            <?php esc_html_e('Delete', 'wln-multi-provider-ai-chat'); ?>
                                         </button>
                                     </li>
                                 <?php endforeach; ?>
@@ -596,30 +604,30 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         <?php endif; ?>
                     </div>
                     
-                    <button type="button" id="gsxr777-new-file" class="button">
-                        <?php esc_html_e('New File', 'gsxr-777-ai-open-chat'); ?>
+                    <button type="button" id="wln-multi-provider-ai-chat-new-file" class="button">
+                        <?php esc_html_e('New File', 'wln-multi-provider-ai-chat'); ?>
                     </button>
                 </div>
                 
-                <div class="gsxr777-knowledge-editor">
+                <div class="wln-multi-provider-ai-chat-knowledge-editor">
                     <form method="post" action="">
                         <?php wp_nonce_field('gsxr_777_knowledge'); ?>
                         
                         <p>
-                            <label for="filename"><?php esc_html_e('Filename:', 'gsxr-777-ai-open-chat'); ?></label>
+                            <label for="filename"><?php esc_html_e('Filename:', 'wln-multi-provider-ai-chat'); ?></label>
                             <input type="text" id="filename" name="filename" class="regular-text" 
                                    placeholder="example.md" required />
                         </p>
                         
                         <p>
-                            <label for="content"><?php esc_html_e('Content:', 'gsxr-777-ai-open-chat'); ?></label>
+                            <label for="content"><?php esc_html_e('Content:', 'wln-multi-provider-ai-chat'); ?></label>
                             <textarea id="content" name="content" rows="20" class="large-text code" 
                                       placeholder="# Your markdown content here..."></textarea>
                         </p>
                         
                         <p class="submit">
                             <input type="submit" name="save_file" class="button-primary" 
-                                   value="<?php esc_html_e('Save File', 'gsxr-777-ai-open-chat'); ?>" />
+                                   value="<?php esc_html_e('Save File', 'wln-multi-provider-ai-chat'); ?>" />
                         </p>
                     </form>
                 </div>
@@ -630,6 +638,10 @@ class WLN_Multi_Provider_AI_Chat_Admin {
     }
 
     public function render_widget_settings_page() {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
+        }
+
         $allowed_tabs = array('general', 'appearance');
         $active_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'general';
         if (!in_array($active_tab, $allowed_tabs, true)) {
@@ -665,7 +677,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                     echo '<div class="notice notice-error"><p>' .
                          esc_html(sprintf(
                              /* translators: %d: Current welcome-message character count. */
-                             __('Welcome message is too long. Maximum 500 characters, current: %d', 'gsxr-777-ai-open-chat'),
+                             __('Welcome message is too long. Maximum 500 characters, current: %d', 'wln-multi-provider-ai-chat'),
                              $this->text_length($welcome)
                          )) .
                          '</p></div>';
@@ -678,7 +690,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                     echo '<div class="notice notice-error"><p>' .
                          esc_html(sprintf(
                              /* translators: %d: Current widget-title character count. */
-                             __('Title is too long. Maximum 100 characters, current: %d', 'gsxr-777-ai-open-chat'),
+                             __('Title is too long. Maximum 100 characters, current: %d', 'wln-multi-provider-ai-chat'),
                              $this->text_length($title)
                          )) .
                          '</p></div>';
@@ -691,7 +703,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
 
                 if ($width < 300 || $width > 800 || $height < 400 || $height > 900) {
                     echo '<div class="notice notice-error"><p>' .
-                         esc_html__('Invalid widget dimensions. Width must be 300-800px and height 400-900px.', 'gsxr-777-ai-open-chat') .
+                         esc_html__('Invalid widget dimensions. Width must be 300-800px and height 400-900px.', 'wln-multi-provider-ai-chat') .
                          '</p></div>';
                     return;
                 }
@@ -710,12 +722,12 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             do_action('litespeed_purge_all');
 
             $active_tab = $settings_section;
-            echo '<div class="notice notice-success"><p>' . esc_html__('Settings saved successfully!', 'gsxr-777-ai-open-chat') . '</p></div>';
+            echo '<div class="notice notice-success"><p>' . esc_html__('Settings saved successfully!', 'wln-multi-provider-ai-chat') . '</p></div>';
         }
 
-        $widget_title = get_option('gsxr_777_widget_title', __('Chat', 'gsxr-777-ai-open-chat'));
-        $widget_welcome = get_option('gsxr_777_widget_welcome', __('Hello! How can I help you?', 'gsxr-777-ai-open-chat'));
-        $widget_placeholder = get_option('gsxr_777_widget_placeholder', __('Type your message...', 'gsxr-777-ai-open-chat'));
+        $widget_title = get_option('gsxr_777_widget_title', __('Chat', 'wln-multi-provider-ai-chat'));
+        $widget_welcome = get_option('gsxr_777_widget_welcome', __('Hello! How can I help you?', 'wln-multi-provider-ai-chat'));
+        $widget_placeholder = get_option('gsxr_777_widget_placeholder', __('Type your message...', 'wln-multi-provider-ai-chat'));
         $widget_position = get_option('gsxr_777_widget_position', 'bottom-right');
         $widget_primary_color = get_option('gsxr_777_widget_primary_color', '#2563eb');
         $widget_secondary_color = get_option('gsxr_777_widget_secondary_color', '#1d4ed8');
@@ -732,17 +744,17 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         $widget_theme_mode = $this->sanitize_theme_mode(get_option('gsxr_777_widget_theme_mode', 'auto'));
         $widget_width = get_option('gsxr_777_widget_width', 400);
         $widget_height = get_option('gsxr_777_widget_height', 600);
-        $tabs_base_url = admin_url('admin.php?page=gsxr-777-widget');
+        $tabs_base_url = admin_url('admin.php?page=wln-multi-provider-ai-chat-widget');
         ?>
-        <div class="wrap gsxr777-admin-page">
-            <h1><?php esc_html_e('Widget Settings', 'gsxr-777-ai-open-chat'); ?></h1>
+        <div class="wrap wln-multi-provider-ai-chat-admin-page">
+            <h1><?php esc_html_e('Widget Settings', 'wln-multi-provider-ai-chat'); ?></h1>
 
             <h2 class="nav-tab-wrapper">
                 <a href="<?php echo esc_url(add_query_arg('tab', 'general', $tabs_base_url)); ?>" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Основные', 'gsxr-777-ai-open-chat'); ?>
+                    <?php esc_html_e('Основные', 'wln-multi-provider-ai-chat'); ?>
                 </a>
                 <a href="<?php echo esc_url(add_query_arg('tab', 'appearance', $tabs_base_url)); ?>" class="nav-tab <?php echo $active_tab === 'appearance' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Внешний вид', 'gsxr-777-ai-open-chat'); ?>
+                    <?php esc_html_e('Внешний вид', 'wln-multi-provider-ai-chat'); ?>
                 </a>
             </h2>
             
@@ -754,28 +766,28 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                     <?php if ($active_tab === 'appearance'): ?>
                         <tr>
                             <th scope="row">
-                                <label for="gsxr_777_widget_theme_mode"><?php esc_html_e('Color Scheme', 'gsxr-777-ai-open-chat'); ?></label>
+                                <label for="gsxr_777_widget_theme_mode"><?php esc_html_e('Color Scheme', 'wln-multi-provider-ai-chat'); ?></label>
                             </th>
                             <td>
                                 <select id="gsxr_777_widget_theme_mode" name="gsxr_777_widget_theme_mode">
-                                    <option value="auto" <?php selected($widget_theme_mode, 'auto'); ?>><?php esc_html_e('Follow system', 'gsxr-777-ai-open-chat'); ?></option>
-                                    <option value="light" <?php selected($widget_theme_mode, 'light'); ?>><?php esc_html_e('Light', 'gsxr-777-ai-open-chat'); ?></option>
-                                    <option value="dark" <?php selected($widget_theme_mode, 'dark'); ?>><?php esc_html_e('Dark', 'gsxr-777-ai-open-chat'); ?></option>
+                                    <option value="auto" <?php selected($widget_theme_mode, 'auto'); ?>><?php esc_html_e('Follow system', 'wln-multi-provider-ai-chat'); ?></option>
+                                    <option value="light" <?php selected($widget_theme_mode, 'light'); ?>><?php esc_html_e('Light', 'wln-multi-provider-ai-chat'); ?></option>
+                                    <option value="dark" <?php selected($widget_theme_mode, 'dark'); ?>><?php esc_html_e('Dark', 'wln-multi-provider-ai-chat'); ?></option>
                                 </select>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Primary Color', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Primary Color', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_primary_color"
                                        value="<?php echo esc_attr($widget_primary_color); ?>" />
-                                <p class="description"><?php esc_html_e('Main accent color for buttons, links and focus states.', 'gsxr-777-ai-open-chat'); ?></p>
+                                <p class="description"><?php esc_html_e('Main accent color for buttons, links and focus states.', 'wln-multi-provider-ai-chat'); ?></p>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Secondary Gradient Color', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Secondary Gradient Color', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_secondary_color"
                                        value="<?php echo esc_attr($widget_secondary_color); ?>" />
@@ -783,17 +795,17 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Gradient Angle', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Gradient Angle', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="number" name="gsxr_777_widget_gradient_angle"
                                        value="<?php echo esc_attr($widget_gradient_angle); ?>"
                                        min="0" max="360" class="small-text" />
-                                <p class="description"><?php esc_html_e('Used for header/button/message gradients.', 'gsxr-777-ai-open-chat'); ?></p>
+                                <p class="description"><?php esc_html_e('Used for header/button/message gradients.', 'wln-multi-provider-ai-chat'); ?></p>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Chat Window Background', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Chat Window Background', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_chat_background_color"
                                        value="<?php echo esc_attr($widget_chat_background_color); ?>" />
@@ -801,7 +813,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Messages Area Background', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Messages Area Background', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_messages_background_color"
                                        value="<?php echo esc_attr($widget_messages_background_color); ?>" />
@@ -809,7 +821,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Assistant Message Background', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Assistant Message Background', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_assistant_background_color"
                                        value="<?php echo esc_attr($widget_assistant_background_color); ?>" />
@@ -817,7 +829,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Assistant Message Text', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Assistant Message Text', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_assistant_text_color"
                                        value="<?php echo esc_attr($widget_assistant_text_color); ?>" />
@@ -825,7 +837,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('User Message Text', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('User Message Text', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_user_text_color"
                                        value="<?php echo esc_attr($widget_user_text_color); ?>" />
@@ -833,7 +845,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Input Background', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Input Background', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_input_background_color"
                                        value="<?php echo esc_attr($widget_input_background_color); ?>" />
@@ -841,7 +853,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Input Text Color', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Input Text Color', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="color" name="gsxr_777_widget_input_text_color"
                                        value="<?php echo esc_attr($widget_input_text_color); ?>" />
@@ -849,25 +861,25 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Widget Font Family', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Widget Font Family', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="text" name="gsxr_777_widget_font_family"
                                        value="<?php echo esc_attr($widget_font_family); ?>" class="regular-text" />
-                                <p class="description"><?php esc_html_e('Example: "Segoe UI", Roboto, Arial, sans-serif', 'gsxr-777-ai-open-chat'); ?></p>
+                                <p class="description"><?php esc_html_e('Example: "Segoe UI", Roboto, Arial, sans-serif', 'wln-multi-provider-ai-chat'); ?></p>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Chat Font Family', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Chat Font Family', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="text" name="gsxr_777_widget_chat_font_family"
                                        value="<?php echo esc_attr($widget_chat_font_family); ?>" class="regular-text" />
-                                <p class="description"><?php esc_html_e('Used in chat messages and input area.', 'gsxr-777-ai-open-chat'); ?></p>
+                                <p class="description"><?php esc_html_e('Used in chat messages and input area.', 'wln-multi-provider-ai-chat'); ?></p>
                             </td>
                         </tr>
                     <?php else: ?>
                         <tr>
-                            <th scope="row"><?php esc_html_e('Widget Title', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Widget Title', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="text" name="gsxr_777_widget_title"
                                        value="<?php echo esc_attr($widget_title); ?>" class="regular-text" />
@@ -875,14 +887,14 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Welcome Message', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Welcome Message', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <textarea name="gsxr_777_widget_welcome" rows="3" class="large-text"><?php echo esc_textarea($widget_welcome); ?></textarea>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Input Placeholder', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Input Placeholder', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="text" name="gsxr_777_widget_placeholder"
                                        value="<?php echo esc_attr($widget_placeholder); ?>" class="regular-text" />
@@ -890,27 +902,27 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Position', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Position', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <select name="gsxr_777_widget_position">
                                     <option value="bottom-right" <?php selected($widget_position, 'bottom-right'); ?>>
-                                        <?php esc_html_e('Bottom Right', 'gsxr-777-ai-open-chat'); ?>
+                                        <?php esc_html_e('Bottom Right', 'wln-multi-provider-ai-chat'); ?>
                                     </option>
                                     <option value="bottom-left" <?php selected($widget_position, 'bottom-left'); ?>>
-                                        <?php esc_html_e('Bottom Left', 'gsxr-777-ai-open-chat'); ?>
+                                        <?php esc_html_e('Bottom Left', 'wln-multi-provider-ai-chat'); ?>
                                     </option>
                                     <option value="top-right" <?php selected($widget_position, 'top-right'); ?>>
-                                        <?php esc_html_e('Top Right', 'gsxr-777-ai-open-chat'); ?>
+                                        <?php esc_html_e('Top Right', 'wln-multi-provider-ai-chat'); ?>
                                     </option>
                                     <option value="top-left" <?php selected($widget_position, 'top-left'); ?>>
-                                        <?php esc_html_e('Top Left', 'gsxr-777-ai-open-chat'); ?>
+                                        <?php esc_html_e('Top Left', 'wln-multi-provider-ai-chat'); ?>
                                     </option>
                                 </select>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Width (px)', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Width (px)', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="number" name="gsxr_777_widget_width"
                                        value="<?php echo esc_attr($widget_width); ?>"
@@ -919,7 +931,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                         </tr>
 
                         <tr>
-                            <th scope="row"><?php esc_html_e('Height (px)', 'gsxr-777-ai-open-chat'); ?></th>
+                            <th scope="row"><?php esc_html_e('Height (px)', 'wln-multi-provider-ai-chat'); ?></th>
                             <td>
                                 <input type="number" name="gsxr_777_widget_height"
                                        value="<?php echo esc_attr($widget_height); ?>"
@@ -931,16 +943,16 @@ class WLN_Multi_Provider_AI_Chat_Admin {
                 
                 <p class="submit">
                     <input type="submit" name="submit" class="button-primary" 
-                           value="<?php esc_html_e('Save Settings', 'gsxr-777-ai-open-chat'); ?>" />
+                           value="<?php esc_html_e('Save Settings', 'wln-multi-provider-ai-chat'); ?>" />
                 </p>
             </form>
             
             <?php if ($active_tab === 'general'): ?>
-                <h2><?php esc_html_e('Shortcode Usage', 'gsxr-777-ai-open-chat'); ?></h2>
-                <p><?php esc_html_e('Use this shortcode to display the chat widget:', 'gsxr-777-ai-open-chat'); ?></p>
+                <h2><?php esc_html_e('Shortcode Usage', 'wln-multi-provider-ai-chat'); ?></h2>
+                <p><?php esc_html_e('Use this shortcode to display the chat widget:', 'wln-multi-provider-ai-chat'); ?></p>
                 <code>[gsxr_777_chat]</code>
 
-                <p><?php esc_html_e('With custom parameters:', 'gsxr-777-ai-open-chat'); ?></p>
+                <p><?php esc_html_e('With custom parameters:', 'wln-multi-provider-ai-chat'); ?></p>
                 <code>[gsxr_777_chat title="Support" color="#ff6b35" width="420" height="640"]</code>
             <?php endif; ?>
         </div>
@@ -948,7 +960,11 @@ class WLN_Multi_Provider_AI_Chat_Admin {
     }
 
     public function render_statistics_page() {
-        $stats = new WLN_AI_Chat_Stats();
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
+        }
+
+        $stats = new WLN_Multi_Provider_AI_Chat_Stats();
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only statistics filter.
         $period = isset($_GET['period']) ? absint(wp_unslash($_GET['period'])) : 30;
         if (!in_array($period, array(7, 30, 90), true)) {
@@ -959,33 +975,33 @@ class WLN_Multi_Provider_AI_Chat_Admin {
         $total_messages = $stats->get_total_messages($period);
         $avg_messages = $stats->get_average_messages_per_session($period);
         ?>
-        <div class="wrap gsxr777-admin-page">
-            <h1><?php esc_html_e('Statistics', 'gsxr-777-ai-open-chat'); ?></h1>
+        <div class="wrap wln-multi-provider-ai-chat-admin-page">
+            <h1><?php esc_html_e('Statistics', 'wln-multi-provider-ai-chat'); ?></h1>
             
             <form method="get" action="">
-                <input type="hidden" name="page" value="gsxr-777-stats" />
-                <label class="screen-reader-text" for="gsxr777-stats-period"><?php esc_html_e('Statistics period', 'gsxr-777-ai-open-chat'); ?></label>
-                <select id="gsxr777-stats-period" name="period">
-                    <option value="7" <?php selected($period, '7'); ?>><?php esc_html_e('Last 7 days', 'gsxr-777-ai-open-chat'); ?></option>
-                    <option value="30" <?php selected($period, '30'); ?>><?php esc_html_e('Last 30 days', 'gsxr-777-ai-open-chat'); ?></option>
-                    <option value="90" <?php selected($period, '90'); ?>><?php esc_html_e('Last 90 days', 'gsxr-777-ai-open-chat'); ?></option>
+                <input type="hidden" name="page" value="wln-multi-provider-ai-chat-stats" />
+                <label class="screen-reader-text" for="wln-multi-provider-ai-chat-stats-period"><?php esc_html_e('Statistics period', 'wln-multi-provider-ai-chat'); ?></label>
+                <select id="wln-multi-provider-ai-chat-stats-period" name="period">
+                    <option value="7" <?php selected($period, '7'); ?>><?php esc_html_e('Last 7 days', 'wln-multi-provider-ai-chat'); ?></option>
+                    <option value="30" <?php selected($period, '30'); ?>><?php esc_html_e('Last 30 days', 'wln-multi-provider-ai-chat'); ?></option>
+                    <option value="90" <?php selected($period, '90'); ?>><?php esc_html_e('Last 90 days', 'wln-multi-provider-ai-chat'); ?></option>
                 </select>
             </form>
             
-            <div class="gsxr777-stats-grid">
-                <div class="gsxr777-stat-card">
-                    <h3><?php esc_html_e('Total Sessions', 'gsxr-777-ai-open-chat'); ?></h3>
-                    <p class="gsxr777-stat-value primary"><?php echo esc_html(number_format_i18n($total_sessions)); ?></p>
+            <div class="wln-multi-provider-ai-chat-stats-grid">
+                <div class="wln-multi-provider-ai-chat-stat-card">
+                    <h3><?php esc_html_e('Total Sessions', 'wln-multi-provider-ai-chat'); ?></h3>
+                    <p class="wln-multi-provider-ai-chat-stat-value primary"><?php echo esc_html(number_format_i18n($total_sessions)); ?></p>
                 </div>
                 
-                <div class="gsxr777-stat-card">
-                    <h3><?php esc_html_e('Total Messages', 'gsxr-777-ai-open-chat'); ?></h3>
-                    <p class="gsxr777-stat-value success"><?php echo esc_html(number_format_i18n($total_messages)); ?></p>
+                <div class="wln-multi-provider-ai-chat-stat-card">
+                    <h3><?php esc_html_e('Total Messages', 'wln-multi-provider-ai-chat'); ?></h3>
+                    <p class="wln-multi-provider-ai-chat-stat-value success"><?php echo esc_html(number_format_i18n($total_messages)); ?></p>
                 </div>
                 
-                <div class="gsxr777-stat-card">
-                    <h3><?php esc_html_e('Avg Messages/Session', 'gsxr-777-ai-open-chat'); ?></h3>
-                    <p class="gsxr777-stat-value warning"><?php echo esc_html(number_format_i18n($avg_messages, 1)); ?></p>
+                <div class="wln-multi-provider-ai-chat-stat-card">
+                    <h3><?php esc_html_e('Avg Messages/Session', 'wln-multi-provider-ai-chat'); ?></h3>
+                    <p class="wln-multi-provider-ai-chat-stat-value warning"><?php echo esc_html(number_format_i18n($avg_messages, 1)); ?></p>
                 </div>
             </div>
         </div>
@@ -993,9 +1009,9 @@ class WLN_Multi_Provider_AI_Chat_Admin {
     }
 
     public function enqueue_admin_styles($hook) {
-        if (strpos($hook, 'gsxr-777-ai-open-chat') !== false) {
+        if (strpos($hook, 'wln-multi-provider-ai-chat') !== false) {
             wp_enqueue_style(
-                'gsxr-777-admin',
+                'wln-multi-provider-ai-chat-admin',
                 WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'admin/css/admin-style.css',
                 array(),
                 WLN_MULTI_PROVIDER_AI_CHAT_VERSION
@@ -1004,25 +1020,25 @@ class WLN_Multi_Provider_AI_Chat_Admin {
     }
 
     public function enqueue_admin_scripts($hook) {
-        if (strpos($hook, 'gsxr-777-ai-open-chat') !== false) {
+        if (strpos($hook, 'wln-multi-provider-ai-chat') !== false) {
             wp_enqueue_script(
-                'gsxr-777-admin',
+                'wln-multi-provider-ai-chat-admin',
                 WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'admin/js/admin-script.js',
                 array(),
                 WLN_MULTI_PROVIDER_AI_CHAT_VERSION,
                 true
             );
-            wp_localize_script('gsxr-777-admin', 'gsxr777_ajax', array(
+            wp_localize_script('wln-multi-provider-ai-chat-admin', 'wlnMultiProviderAIChatAdmin', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'testNonce' => wp_create_nonce('gsxr_777_test_connection'),
                 'knowledgeNonce' => wp_create_nonce('gsxr_777_knowledge'),
                 'strings' => array(
-                    'testing' => __('Testing...', 'gsxr-777-ai-open-chat'),
-                    'testConnection' => __('Test Connection', 'gsxr-777-ai-open-chat'),
-                    'connectionFailed' => __('Connection test failed', 'gsxr-777-ai-open-chat'),
-                    'deleteConfirm' => __('Are you sure you want to delete this file?', 'gsxr-777-ai-open-chat'),
-                    'deleteFailed' => __('Failed to delete file', 'gsxr-777-ai-open-chat'),
-                    'requestFailed' => __('Request failed', 'gsxr-777-ai-open-chat')
+                    'testing' => __('Testing...', 'wln-multi-provider-ai-chat'),
+                    'testConnection' => __('Test Connection', 'wln-multi-provider-ai-chat'),
+                    'connectionFailed' => __('Connection test failed', 'wln-multi-provider-ai-chat'),
+                    'deleteConfirm' => __('Are you sure you want to delete this file?', 'wln-multi-provider-ai-chat'),
+                    'deleteFailed' => __('Failed to delete file', 'wln-multi-provider-ai-chat'),
+                    'requestFailed' => __('Request failed', 'wln-multi-provider-ai-chat')
                 )
             ));
         }
@@ -1033,7 +1049,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             check_ajax_referer('gsxr_777_test_connection', 'nonce');
             
             if (!current_user_can('manage_options')) {
-                throw new Exception(__('Insufficient permissions', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
             }
             
             $api_base_url = $this->sanitize_api_base_url(
@@ -1044,7 +1060,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             $api_model = isset($_POST['api_model']) ? sanitize_text_field(wp_unslash($_POST['api_model'])) : '';
             $api_project_id = isset($_POST['api_project_id']) ? sanitize_text_field(wp_unslash($_POST['api_project_id'])) : '';
 
-            $api = new WLN_AI_Chat_API();
+            $api = new WLN_Multi_Provider_AI_Chat_API();
             $stored_encrypted_key = get_option('gsxr_777_api_key', '');
             $is_masked_value = $api_key_masked === '1' && $api_key === $this->api_key_mask;
 
@@ -1054,19 +1070,19 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             }
 
             if (empty($api_base_url) || empty($api_key) || empty($api_model)) {
-                throw new Exception(__('Missing required fields', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Missing required fields', 'wln-multi-provider-ai-chat'));
             }
 
             $result = $api->test_connection($api_base_url, $api_key, $api_model, $api_project_id);
             
             if ($result['success']) {
-                wp_send_json_success(array('message' => __('Connection successful!', 'gsxr-777-ai-open-chat')));
+                wp_send_json_success(array('message' => __('Connection successful!', 'wln-multi-provider-ai-chat')));
             } else {
                 wp_send_json_error(array('message' => $result['error']));
             }
         } catch (Exception $e) {
-            error_log('GSXR-777 AJAX Error (test_connection): ' . $e->getMessage());
-            wp_send_json_error(array('message' => __('An error occurred. Please check the logs.', 'gsxr-777-ai-open-chat')));
+            error_log('WLN Multi-Provider AI Chat AJAX Error (test_connection): ' . $e->getMessage());
+            wp_send_json_error(array('message' => __('An error occurred. Please check the logs.', 'wln-multi-provider-ai-chat')));
         }
     }
 
@@ -1075,33 +1091,33 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             check_ajax_referer('gsxr_777_knowledge', 'nonce');
             
             if (!current_user_can('manage_options')) {
-                throw new Exception(__('Insufficient permissions', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
             }
             
             $filename = isset($_POST['filename']) ? sanitize_file_name(wp_unslash($_POST['filename'])) : '';
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Markdown is validated and stored as text by WLN_AI_Chat_Knowledge.
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Markdown is validated and stored as text by WLN_Multi_Provider_AI_Chat_Knowledge.
             $content = isset($_POST['content']) ? wp_unslash($_POST['content']) : '';
             
             // Validate filename
             if (empty($filename) || pathinfo($filename, PATHINFO_EXTENSION) !== 'md') {
-                throw new Exception(__('Only .md files are allowed', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Only .md files are allowed', 'wln-multi-provider-ai-chat'));
             }
             
             // Prevent path traversal
             if (strpos($filename, '..') !== false || strpos($filename, '/') !== false) {
-                throw new Exception(__('Invalid filename', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Invalid filename', 'wln-multi-provider-ai-chat'));
             }
             
-            $knowledge = new WLN_AI_Chat_Knowledge();
+            $knowledge = new WLN_Multi_Provider_AI_Chat_Knowledge();
             $result = $knowledge->save_file($filename, $content);
             
             if ($result) {
-                wp_send_json_success(array('message' => __('File saved successfully!', 'gsxr-777-ai-open-chat')));
+                wp_send_json_success(array('message' => __('File saved successfully!', 'wln-multi-provider-ai-chat')));
             } else {
-                throw new Exception(__('Error saving file!', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Error saving file!', 'wln-multi-provider-ai-chat'));
             }
         } catch (Exception $e) {
-            error_log('GSXR-777 AJAX Error (save_knowledge_file): ' . $e->getMessage());
+            error_log('WLN Multi-Provider AI Chat AJAX Error (save_knowledge_file): ' . $e->getMessage());
             wp_send_json_error(array('message' => $e->getMessage()));
         }
     }
@@ -1111,41 +1127,41 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             check_ajax_referer('gsxr_777_knowledge', 'nonce');
             
             if (!current_user_can('manage_options')) {
-                throw new Exception(__('Insufficient permissions', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
             }
             
             $filename = isset($_POST['filename']) ? sanitize_text_field(wp_unslash($_POST['filename'])) : '';
             
             // Validate filename format
             if (empty($filename)) {
-                throw new Exception(__('Filename is required', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Filename is required', 'wln-multi-provider-ai-chat'));
             }
             
             // Check extension
             if (pathinfo($filename, PATHINFO_EXTENSION) !== 'md') {
-                throw new Exception(__('Only .md files are allowed', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Only .md files are allowed', 'wln-multi-provider-ai-chat'));
             }
             
             // Prevent path traversal
             if (strpos($filename, '..') !== false || strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
-                throw new Exception(__('Invalid filename', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Invalid filename', 'wln-multi-provider-ai-chat'));
             }
             
             // Validate filename characters
             if (!preg_match('/^[a-zA-Z0-9._-]+\.md$/', $filename)) {
-                throw new Exception(__('Invalid filename format', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Invalid filename format', 'wln-multi-provider-ai-chat'));
             }
             
-            $knowledge = new WLN_AI_Chat_Knowledge();
+            $knowledge = new WLN_Multi_Provider_AI_Chat_Knowledge();
             $result = $knowledge->delete_file($filename);
             
             if ($result) {
-                wp_send_json_success(array('message' => __('File deleted successfully!', 'gsxr-777-ai-open-chat')));
+                wp_send_json_success(array('message' => __('File deleted successfully!', 'wln-multi-provider-ai-chat')));
             } else {
-                throw new Exception(__('Error deleting file!', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Error deleting file!', 'wln-multi-provider-ai-chat'));
             }
         } catch (Exception $e) {
-            error_log('GSXR-777 AJAX Error (delete_knowledge_file): ' . $e->getMessage());
+            error_log('WLN Multi-Provider AI Chat AJAX Error (delete_knowledge_file): ' . $e->getMessage());
             wp_send_json_error(array('message' => $e->getMessage()));
         }
     }
@@ -1155,31 +1171,31 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             check_ajax_referer('gsxr_777_knowledge', 'nonce');
             
             if (!current_user_can('manage_options')) {
-                throw new Exception(__('Insufficient permissions', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Insufficient permissions', 'wln-multi-provider-ai-chat'));
             }
             
             $filename = isset($_POST['filename']) ? sanitize_file_name(wp_unslash($_POST['filename'])) : '';
             
             // Validate filename
             if (empty($filename) || pathinfo($filename, PATHINFO_EXTENSION) !== 'md') {
-                throw new Exception(__('Only .md files are allowed', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Only .md files are allowed', 'wln-multi-provider-ai-chat'));
             }
             
             // Prevent path traversal
             if (strpos($filename, '..') !== false || strpos($filename, '/') !== false) {
-                throw new Exception(__('Invalid filename', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('Invalid filename', 'wln-multi-provider-ai-chat'));
             }
             
-            $knowledge = new WLN_AI_Chat_Knowledge();
+            $knowledge = new WLN_Multi_Provider_AI_Chat_Knowledge();
             $content = $knowledge->get_file_content($filename);
             
             if ($content !== false) {
                 wp_send_json_success(array('content' => $content));
             } else {
-                throw new Exception(__('File not found', 'gsxr-777-ai-open-chat'));
+                throw new Exception(__('File not found', 'wln-multi-provider-ai-chat'));
             }
         } catch (Exception $e) {
-            error_log('GSXR-777 AJAX Error (get_knowledge_file): ' . $e->getMessage());
+            error_log('WLN Multi-Provider AI Chat AJAX Error (get_knowledge_file): ' . $e->getMessage());
             wp_send_json_error(array('message' => $e->getMessage()));
         }
     }
@@ -1189,19 +1205,19 @@ class WLN_Multi_Provider_AI_Chat_Admin {
 
         if (!current_user_can('manage_options')) {
             wp_send_json_error(
-                array('message' => __('Insufficient permissions', 'gsxr-777-ai-open-chat')),
+                array('message' => __('Insufficient permissions', 'wln-multi-provider-ai-chat')),
                 403
             );
         }
 
-        $knowledge = new WLN_AI_Chat_Knowledge();
+        $knowledge = new WLN_Multi_Provider_AI_Chat_Knowledge();
         $knowledge->rebuild_index();
         $stats = $knowledge->get_index_stats();
 
         wp_send_json_success(array(
             'message' => sprintf(
                 /* translators: 1: Number of indexed sources, 2: Number of indexed text chunks. */
-                __('Index rebuilt: %1$d sources, %2$d chunks.', 'gsxr-777-ai-open-chat'),
+                __('Index rebuilt: %1$d sources, %2$d chunks.', 'wln-multi-provider-ai-chat'),
                 $stats['sources'],
                 $stats['chunks']
             )
@@ -1221,13 +1237,13 @@ class WLN_Multi_Provider_AI_Chat_Admin {
             return $stored_key;
         }
 
-        $api = new WLN_AI_Chat_API();
+        $api = new WLN_Multi_Provider_AI_Chat_API();
         $encrypted = $api->encrypt_api_key($key);
         if ($encrypted === '') {
             add_settings_error(
                 'gsxr_777_api_key',
                 'gsxr_777_api_key_encryption_failed',
-                __('The API key could not be encrypted.', 'gsxr-777-ai-open-chat')
+                __('The API key could not be encrypted.', 'wln-multi-provider-ai-chat')
             );
             return $stored_key;
         }
@@ -1237,7 +1253,7 @@ class WLN_Multi_Provider_AI_Chat_Admin {
 
     public function sanitize_api_base_url($url) {
         $url = esc_url_raw(trim((string) $url));
-        $api = new WLN_AI_Chat_API();
+        $api = new WLN_Multi_Provider_AI_Chat_API();
         return $api->is_allowed_api_base_url($url) ? untrailingslashit($url) : '';
     }
 

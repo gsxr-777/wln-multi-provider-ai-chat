@@ -7,46 +7,56 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WLN_AI_Chat_Widget {
+class WLN_Multi_Provider_AI_Chat_Widget {
 
     public function __construct() {
         // Constructor
     }
 
     public function register_rest_routes() {
-        register_rest_route('gsxr-777/v1', '/session', array(
+        // Retain the old namespace for cached pages and existing integrations.
+        foreach (array('wln-multi-provider-ai-chat/v1', 'gsxr-777/v1') as $namespace) {
+            $this->register_routes_for_namespace($namespace);
+        }
+    }
+
+    private function register_routes_for_namespace($namespace) {
+        // Intentionally public: issues a fresh random credential, with no
+        // database writes, provider calls or access to an existing conversation.
+        register_rest_route($namespace, '/session', array(
             'methods' => 'POST',
             'callback' => array($this, 'handle_create_session'),
             'permission_callback' => '__return_true'
         ));
 
-        register_rest_route('gsxr-777/v1', '/chat', array(
+        register_rest_route($namespace, '/chat', array(
             'methods' => 'POST',
             'callback' => array($this, 'handle_chat_message'),
             'permission_callback' => array($this, 'check_session_permissions')
         ));
 
-        register_rest_route('gsxr-777/v1', '/history/(?P<session_id>[a-zA-Z0-9_-]+)', array(
+        register_rest_route($namespace, '/history/(?P<session_id>[a-zA-Z0-9_-]+)', array(
             'methods' => 'GET',
             'callback' => array($this, 'handle_get_history'),
             'permission_callback' => array($this, 'check_session_permissions')
         ));
 
-        register_rest_route('gsxr-777/v1', '/history/(?P<session_id>[a-zA-Z0-9_-]+)', array(
+        register_rest_route($namespace, '/history/(?P<session_id>[a-zA-Z0-9_-]+)', array(
             'methods' => 'DELETE',
             'callback' => array($this, 'handle_delete_history'),
             'permission_callback' => array($this, 'check_session_permissions')
         ));
 
         // Dynamic strings endpoint for Polylang and other multi-language plugins
-        register_rest_route('gsxr-777/v1', '/strings/', array(
+        register_rest_route($namespace, '/strings/', array(
             'methods' => 'GET',
             'callback' => array($this, 'handle_get_strings'),
             'permission_callback' => '__return_true'
         ));
 
-        // Dynamic config endpoint - returns full config with current language
-        register_rest_route('gsxr-777/v1', '/config/', array(
+        // Intentionally public: allowlisted widget appearance and translated
+        // labels only; no API credentials, private settings or conversation data.
+        register_rest_route($namespace, '/config/', array(
             'methods' => 'GET',
             'callback' => array($this, 'handle_get_config'),
             'permission_callback' => '__return_true'
@@ -67,12 +77,16 @@ class WLN_AI_Chat_Widget {
 
     public function check_session_permissions($request) {
         $session_id = sanitize_text_field((string) $request->get_param('session_id'));
-        $session_token = sanitize_text_field((string) $request->get_header('X-GSXR-Session-Token'));
+        $session_token = $request->get_header('X-WLN-Session-Token');
+        if (!$session_token) {
+            $session_token = $request->get_header('X-GSXR-Session-Token');
+        }
+        $session_token = sanitize_text_field((string) $session_token);
 
         if (!$this->verify_session_credentials($session_id, $session_token)) {
             return new WP_Error(
                 'invalid_session_credentials',
-                __('Invalid chat session credentials', 'gsxr-777-ai-open-chat'),
+                __('Invalid chat session credentials', 'wln-multi-provider-ai-chat'),
                 array('status' => 401)
             );
         }
@@ -90,7 +104,7 @@ class WLN_AI_Chat_Widget {
     }
 
     public function verify_session_credentials($session_id, $session_token) {
-        $security = new WLN_AI_Chat_Security();
+        $security = new WLN_Multi_Provider_AI_Chat_Security();
         if (!$security->is_valid_session_id($session_id) || !is_string($session_token) || $session_token === '') {
             return false;
         }
@@ -107,7 +121,7 @@ class WLN_AI_Chat_Widget {
         $ip_address = $this->get_client_ip();
         
         // Security validation
-        $security = new WLN_AI_Chat_Security();
+        $security = new WLN_Multi_Provider_AI_Chat_Security();
         $validation = $security->validate_request($message, $session_id, $ip_address);
         
         if (!$validation['valid']) {
@@ -129,7 +143,7 @@ class WLN_AI_Chat_Widget {
         );
 
         // Store only the metadata explicitly enabled by the administrator.
-        $stats = new WLN_AI_Chat_Stats();
+        $stats = new WLN_Multi_Provider_AI_Chat_Stats();
         $store_metadata = (bool) get_option('gsxr_777_store_request_metadata', false);
         $raw_user_agent = sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'] ?? ''));
         $user_agent = $store_metadata ? substr($raw_user_agent, 0, 255) : '';
@@ -141,14 +155,14 @@ class WLN_AI_Chat_Widget {
         $chat_context = $this->sanitize_context($context);
         
         // Get AI response
-        $api = new WLN_AI_Chat_API();
+        $api = new WLN_Multi_Provider_AI_Chat_API();
         $response = $api->chat_completion($history, $chat_context);
         
         if (!$response['success']) {
-            error_log('GSXR-777 API request failed: ' . sanitize_text_field($response['error']));
+            error_log('WLN Multi-Provider AI Chat API request failed: ' . sanitize_text_field($response['error']));
             return new WP_Error(
                 'api_error',
-                __('The AI service is temporarily unavailable. Please try again.', 'gsxr-777-ai-open-chat'),
+                __('The AI service is temporarily unavailable. Please try again.', 'wln-multi-provider-ai-chat'),
                 array('status' => 502)
             );
         }
@@ -172,7 +186,7 @@ class WLN_AI_Chat_Widget {
         $session_id = sanitize_text_field($request->get_param('session_id'));
         
         if (empty($session_id)) {
-            return new WP_Error('invalid_session', __('Invalid session ID', 'gsxr-777-ai-open-chat'), array('status' => 400));
+            return new WP_Error('invalid_session', __('Invalid session ID', 'wln-multi-provider-ai-chat'), array('status' => 400));
         }
         
         $history = $this->get_conversation_history($session_id);
@@ -188,12 +202,12 @@ class WLN_AI_Chat_Widget {
 
     public function handle_delete_history($request) {
         $session_id = sanitize_text_field((string) $request->get_param('session_id'));
-        $stats = new WLN_AI_Chat_Stats();
+        $stats = new WLN_Multi_Provider_AI_Chat_Stats();
         $stats->delete_session($session_id);
 
         $response = rest_ensure_response(array(
             'success' => true,
-            'message' => __('Conversation history cleared', 'gsxr-777-ai-open-chat')
+            'message' => __('Conversation history cleared', 'wln-multi-provider-ai-chat')
         ));
         $response->header('Cache-Control', 'no-store, private');
 
@@ -207,17 +221,17 @@ class WLN_AI_Chat_Widget {
         // Return localized strings based on current language
         // This allows Polylang and other plugins to switch languages dynamically
         $response = rest_ensure_response(array(
-            'send' => __('Send', 'gsxr-777-ai-open-chat'),
-            'typing' => __('AI is typing...', 'gsxr-777-ai-open-chat'),
-            'error' => __('Sorry, something went wrong. Please try again.', 'gsxr-777-ai-open-chat'),
-            'retry' => __('Retry', 'gsxr-777-ai-open-chat'),
-            'close' => __('Close', 'gsxr-777-ai-open-chat'),
-            'minimize' => __('Minimize', 'gsxr-777-ai-open-chat'),
-            'maximize' => __('Maximize', 'gsxr-777-ai-open-chat'),
-            'open' => __('Open chat', 'gsxr-777-ai-open-chat'),
-            'clear' => __('Clear conversation', 'gsxr-777-ai-open-chat'),
-            'cleared' => __('Conversation history cleared', 'gsxr-777-ai-open-chat'),
-            'sessionError' => __('Could not start a secure chat session', 'gsxr-777-ai-open-chat'),
+            'send' => __('Send', 'wln-multi-provider-ai-chat'),
+            'typing' => __('AI is typing...', 'wln-multi-provider-ai-chat'),
+            'error' => __('Sorry, something went wrong. Please try again.', 'wln-multi-provider-ai-chat'),
+            'retry' => __('Retry', 'wln-multi-provider-ai-chat'),
+            'close' => __('Close', 'wln-multi-provider-ai-chat'),
+            'minimize' => __('Minimize', 'wln-multi-provider-ai-chat'),
+            'maximize' => __('Maximize', 'wln-multi-provider-ai-chat'),
+            'open' => __('Open chat', 'wln-multi-provider-ai-chat'),
+            'clear' => __('Clear conversation', 'wln-multi-provider-ai-chat'),
+            'cleared' => __('Conversation history cleared', 'wln-multi-provider-ai-chat'),
+            'sessionError' => __('Could not start a secure chat session', 'wln-multi-provider-ai-chat'),
             'language' => $this->get_current_language()
         ));
         $response->header('Cache-Control', 'no-store, private');
@@ -256,7 +270,7 @@ class WLN_AI_Chat_Widget {
         $this->switch_to_current_language();
         
         wp_enqueue_script(
-            'gsxr-777-widget',
+            'wln-multi-provider-ai-chat-widget',
             WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'public/js/widget.js',
             array(),
             $script_version,
@@ -264,19 +278,19 @@ class WLN_AI_Chat_Widget {
         );
         
         wp_enqueue_style(
-            'gsxr-777-widget',
+            'wln-multi-provider-ai-chat-widget',
             WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'public/css/widget.css',
             array(),
             $style_version
         );
         
         // Localize script with settings
-        wp_localize_script('gsxr-777-widget', 'gsxr777Config', $this->get_widget_config());
+        wp_localize_script('wln-multi-provider-ai-chat-widget', 'wlnMultiProviderAIChatConfig', $this->get_widget_config());
     }
 
     public function render_shortcode($atts) {
         $atts = shortcode_atts(array(
-            'title' => get_option('gsxr_777_widget_title', __('Chat', 'gsxr-777-ai-open-chat')),
+            'title' => get_option('gsxr_777_widget_title', __('Chat', 'wln-multi-provider-ai-chat')),
             'color' => get_option('gsxr_777_widget_primary_color', '#2563eb'),
             'width' => get_option('gsxr_777_widget_width', 400),
             'height' => get_option('gsxr_777_widget_height', 600)
@@ -291,7 +305,7 @@ class WLN_AI_Chat_Widget {
         );
 
         return sprintf(
-            '<div class="gsxr777-chat-shortcode" data-gsxr777-config="%s"></div>',
+            '<div class="wln-multi-provider-ai-chat-chat-shortcode" data-wln-multi-provider-ai-chat-config="%s"></div>',
             esc_attr(wp_json_encode($shortcode_config))
         );
     }
@@ -310,9 +324,9 @@ class WLN_AI_Chat_Widget {
         $saved_placeholder = trim(get_option('gsxr_777_widget_placeholder', ''));
         
         // Default translated values (will use current language after switch_to_current_language)
-        $default_title = __('Chat', 'gsxr-777-ai-open-chat');
-        $default_welcome = __('Hello! How can I help you?', 'gsxr-777-ai-open-chat');
-        $default_placeholder = __('Type your message...', 'gsxr-777-ai-open-chat');
+        $default_title = __('Chat', 'wln-multi-provider-ai-chat');
+        $default_welcome = __('Hello! How can I help you?', 'wln-multi-provider-ai-chat');
+        $default_placeholder = __('Type your message...', 'wln-multi-provider-ai-chat');
         
         // Helper to translate string
         $translate = function($string) use ($current_lang) {
@@ -406,12 +420,11 @@ class WLN_AI_Chat_Widget {
         $chat_font = $sanitize_font(get_option('gsxr_777_widget_chat_font_family', 'inherit'), 'inherit');
         
         return array(
-            'sessionUrl' => rest_url('gsxr-777/v1/session'),
-            'apiUrl' => rest_url('gsxr-777/v1/chat') . $lang_param,
-            'historyUrl' => rest_url('gsxr-777/v1/history/'),
-            'stringsUrl' => rest_url('gsxr-777/v1/strings/') . $lang_param,
-            'configUrl' => rest_url('gsxr-777/v1/config/') . $lang_param,
-            'nonce' => wp_create_nonce('wp_rest'),
+            'sessionUrl' => rest_url('wln-multi-provider-ai-chat/v1/session'),
+            'apiUrl' => rest_url('wln-multi-provider-ai-chat/v1/chat') . $lang_param,
+            'historyUrl' => rest_url('wln-multi-provider-ai-chat/v1/history/'),
+            'stringsUrl' => rest_url('wln-multi-provider-ai-chat/v1/strings/') . $lang_param,
+            'configUrl' => rest_url('wln-multi-provider-ai-chat/v1/config/') . $lang_param,
             'title' => $title,
             'welcome' => $welcome,
             'placeholder' => $placeholder,
@@ -441,17 +454,17 @@ class WLN_AI_Chat_Widget {
             ),
             'language' => $current_locale,
             'strings' => array(
-                'send' => __('Send', 'gsxr-777-ai-open-chat'),
-                'typing' => __('AI is typing...', 'gsxr-777-ai-open-chat'),
-                'error' => __('Sorry, something went wrong. Please try again.', 'gsxr-777-ai-open-chat'),
-                'retry' => __('Retry', 'gsxr-777-ai-open-chat'),
-                'close' => __('Close', 'gsxr-777-ai-open-chat'),
-                'minimize' => __('Minimize', 'gsxr-777-ai-open-chat'),
-                'maximize' => __('Maximize', 'gsxr-777-ai-open-chat'),
-                'open' => __('Open chat', 'gsxr-777-ai-open-chat'),
-                'clear' => __('Clear conversation', 'gsxr-777-ai-open-chat'),
-                'cleared' => __('Conversation history cleared', 'gsxr-777-ai-open-chat'),
-                'sessionError' => __('Could not start a secure chat session', 'gsxr-777-ai-open-chat')
+                'send' => __('Send', 'wln-multi-provider-ai-chat'),
+                'typing' => __('AI is typing...', 'wln-multi-provider-ai-chat'),
+                'error' => __('Sorry, something went wrong. Please try again.', 'wln-multi-provider-ai-chat'),
+                'retry' => __('Retry', 'wln-multi-provider-ai-chat'),
+                'close' => __('Close', 'wln-multi-provider-ai-chat'),
+                'minimize' => __('Minimize', 'wln-multi-provider-ai-chat'),
+                'maximize' => __('Maximize', 'wln-multi-provider-ai-chat'),
+                'open' => __('Open chat', 'wln-multi-provider-ai-chat'),
+                'clear' => __('Clear conversation', 'wln-multi-provider-ai-chat'),
+                'cleared' => __('Conversation history cleared', 'wln-multi-provider-ai-chat'),
+                'sessionError' => __('Could not start a secure chat session', 'wln-multi-provider-ai-chat')
             )
         );
     }

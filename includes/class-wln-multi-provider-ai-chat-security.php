@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class WLN_AI_Chat_Security {
+class WLN_Multi_Provider_AI_Chat_Security {
 
     public function __construct() {
         // Constructor
@@ -18,7 +18,7 @@ class WLN_AI_Chat_Security {
             return array(
                 'valid' => false,
                 'status' => 400,
-                'error' => __('Invalid chat session', 'gsxr-777-ai-open-chat')
+                'error' => __('Invalid chat session', 'wln-multi-provider-ai-chat')
             );
         }
 
@@ -26,7 +26,7 @@ class WLN_AI_Chat_Security {
             return array(
                 'valid' => false,
                 'status' => 400,
-                'error' => __('Message must be text', 'gsxr-777-ai-open-chat')
+                'error' => __('Message must be text', 'wln-multi-provider-ai-chat')
             );
         }
 
@@ -39,7 +39,7 @@ class WLN_AI_Chat_Security {
             return array(
                 'valid' => false,
                 'status' => 400,
-                'error' => __('Message is empty or too long', 'gsxr-777-ai-open-chat')
+                'error' => __('Message is empty or too long', 'wln-multi-provider-ai-chat')
             );
         }
 
@@ -48,7 +48,7 @@ class WLN_AI_Chat_Security {
             return array(
                 'valid' => false,
                 'status' => 429,
-                'error' => __('Your IP address is temporarily blocked', 'gsxr-777-ai-open-chat')
+                'error' => __('Your IP address is temporarily blocked', 'wln-multi-provider-ai-chat')
             );
         }
 
@@ -62,7 +62,7 @@ class WLN_AI_Chat_Security {
             return array(
                 'valid' => false,
                 'status' => 429,
-                'error' => __('Rate limit exceeded. Please wait before sending another message', 'gsxr-777-ai-open-chat')
+                'error' => __('Rate limit exceeded. Please wait before sending another message', 'wln-multi-provider-ai-chat')
             );
         }
 
@@ -122,7 +122,7 @@ class WLN_AI_Chat_Security {
 
         if ($updated === false) {
             // Fail closed when accounting cannot be performed.
-            error_log('GSXR-777: Rate limit storage error');
+            error_log('WLN Multi-Provider AI Chat: Rate limit storage error');
             return false;
         }
 
@@ -228,10 +228,10 @@ class WLN_AI_Chat_Security {
             );
             
             if ($result === false && !empty($wpdb->last_error)) {
-                error_log('GSXR-777: Failed to log security event - ' . $wpdb->last_error);
+                error_log('WLN Multi-Provider AI Chat: Failed to log security event - ' . $wpdb->last_error);
             }
         } catch (Exception $e) {
-            error_log('GSXR-777: Security log error - ' . $e->getMessage());
+            error_log('WLN Multi-Provider AI Chat: Security log error - ' . $e->getMessage());
         }
     }
 
