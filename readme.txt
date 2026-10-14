@@ -4,7 +4,7 @@ Tags: ai, chat, chatbot, customer support, knowledge base
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -106,6 +106,11 @@ This release retains direct provider integrations to preserve existing credentia
 The session endpoint issues a new random signed credential without storing data or contacting an AI provider. Configuration and translated-label endpoints intentionally expose only frontend widget settings. Chat and history endpoints require the conversation's signed credential. Administrative operations require manage_options and form/AJAX nonces when changing data.
 
 == Changelog ==
+
+= 1.4.3 =
+* Prevented theme section containment from clipping the floating button on hover.
+* Isolated the send button dimensions and outline icons from global theme submit-button and SVG styles.
+* Localized previously saved English default widget labels at display time while preserving custom text and stored settings.
 
 = 1.4.2 =
 * Prevented double encryption when WordPress sanitizes an already encrypted API key.

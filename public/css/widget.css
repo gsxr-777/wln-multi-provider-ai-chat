@@ -23,6 +23,11 @@
        floating chat above it without affecting the page layout. */
     z-index: 2147483647 !important;
     isolation: isolate;
+    /* Themes may apply content-visibility to every section. Its implicit
+       paint containment clips the toggle's hover scale and shadow. */
+    content-visibility: visible !important;
+    contain: none !important;
+    overflow: visible !important;
     /* Isolate the root from theme-wide section rules (borders, padding,
        backgrounds and shadows) used by Fusion and other page builders. */
     border: 0 !important;
@@ -99,6 +104,14 @@
 .wln-multi-provider-ai-chat-chat-send svg {
     display: block;
     pointer-events: none;
+    flex: 0 0 24px;
+    width: 24px;
+    height: 24px;
+}
+
+/* Preserve outline icons against theme-wide [fill] normalization. */
+.wln-multi-provider-ai-chat-chat-widget svg [fill="none"] {
+    fill: none;
 }
 
 .wln-multi-provider-ai-chat-chat-window {
@@ -414,13 +427,17 @@
     opacity: 1;
 }
 
-.wln-multi-provider-ai-chat-chat-send {
-    width: 2.75rem;
-    height: 2.75rem;
-    padding: 0.625rem;
-    border-radius: 0.5rem;
-    background: var(--wln-multi-provider-ai-chat-accent-gradient);
-    color: #fff;
+.wln-multi-provider-ai-chat-chat-widget .wln-multi-provider-ai-chat-chat-input-container button.wln-multi-provider-ai-chat-chat-send[type="submit"] {
+    /* WooCommerce themes can style every submit button with !important.
+       Keep the icon button's dimensions and colors local to this widget. */
+    box-sizing: border-box;
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+    padding: 0.625rem !important;
+    border: 0 !important;
+    border-radius: 0.5rem !important;
+    background: var(--wln-multi-provider-ai-chat-accent-gradient) !important;
+    color: #fff !important;
     display: flex;
     flex-shrink: 0;
     align-items: center;

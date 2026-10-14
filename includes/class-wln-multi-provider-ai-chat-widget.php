@@ -373,21 +373,27 @@ class WLN_Multi_Provider_AI_Chat_Widget {
             $title = $default_title;
         } else {
             $translated = $translate($saved_title);
-            $title = ($translated !== $saved_title && $translated !== '') ? $translated : $saved_title;
+            $title = ($translated !== $saved_title && $translated !== '')
+                ? $translated
+                : ($saved_title === 'Chat' ? $default_title : $saved_title);
         }
         
         if (empty($saved_welcome)) {
             $welcome = $default_welcome;
         } else {
             $translated = $translate($saved_welcome);
-            $welcome = ($translated !== $saved_welcome && $translated !== '') ? $translated : $saved_welcome;
+            $welcome = ($translated !== $saved_welcome && $translated !== '')
+                ? $translated
+                : ($saved_welcome === 'Hello! How can I help you?' ? $default_welcome : $saved_welcome);
         }
         
         if (empty($saved_placeholder)) {
             $placeholder = $default_placeholder;
         } else {
             $translated = $translate($saved_placeholder);
-            $placeholder = ($translated !== $saved_placeholder && $translated !== '') ? $translated : $saved_placeholder;
+            $placeholder = ($translated !== $saved_placeholder && $translated !== '')
+                ? $translated
+                : ($saved_placeholder === 'Type your message...' ? $default_placeholder : $saved_placeholder);
         }
         
         // Append language to REST URLs if available
