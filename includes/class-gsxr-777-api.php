@@ -19,7 +19,14 @@ class GSXR_777_API {
         $api_model = isset($runtime_config['api_model']) ? $runtime_config['api_model'] : get_option('gsxr_777_api_model');
         $temperature = isset($runtime_config['temperature']) ? $runtime_config['temperature'] : get_option('gsxr_777_api_temperature', 0.7);
         $max_tokens = isset($runtime_config['max_tokens']) ? $runtime_config['max_tokens'] : get_option('gsxr_777_api_max_tokens', 1000);
+        $top_p = isset($runtime_config['top_p']) ? $runtime_config['top_p'] : get_option('gsxr_777_api_top_p', 1);
+        $frequency_penalty = isset($runtime_config['frequency_penalty']) ? $runtime_config['frequency_penalty'] : get_option('gsxr_777_api_frequency_penalty', 0);
+        $presence_penalty = isset($runtime_config['presence_penalty']) ? $runtime_config['presence_penalty'] : get_option('gsxr_777_api_presence_penalty', 0);
         $api_project_id = isset($runtime_config['api_project_id']) ? $runtime_config['api_project_id'] : get_option('gsxr_777_api_project_id', '');
+
+        $top_p = max(0, min(1, floatval($top_p)));
+        $frequency_penalty = max(-2, min(2, floatval($frequency_penalty)));
+        $presence_penalty = max(-2, min(2, floatval($presence_penalty)));
 
         if (empty($api_base_url) || empty($api_key) || empty($api_model)) {
             return array(
@@ -55,6 +62,18 @@ class GSXR_777_API {
             'temperature' => floatval($temperature),
             'max_tokens' => intval($max_tokens)
         );
+
+        // Keep advanced parameters optional for compatibility with routers/models
+        // that expose only a subset of OpenAI-style sampling fields.
+        if (abs($top_p - 1.0) > 0.00001) {
+            $payload['top_p'] = $top_p;
+        }
+        if (abs($frequency_penalty) > 0.00001) {
+            $payload['frequency_penalty'] = $frequency_penalty;
+        }
+        if (abs($presence_penalty) > 0.00001) {
+            $payload['presence_penalty'] = $presence_penalty;
+        }
 
         // Determine API format based on base URL
         if ($this->is_yandex_api($api_base_url)) {
@@ -168,8 +187,20 @@ class GSXR_777_API {
     public function build_system_prompt($context) {
         $knowledge = new GSXR_777_Knowledge();
         $knowledge_content = $knowledge->get_aggregated_content();
-        
+
+        $personality = get_option('gsxr_777_api_personality', 'friendly');
+        $personality_instruction = $this->get_personality_instruction($personality);
+        $custom_instructions = trim(get_option('gsxr_777_api_system_instructions', ''));
+
         $prompt = __('You are a helpful AI assistant integrated into a WordPress website.', 'gsxr-777');
+
+        if (!empty($personality_instruction)) {
+            $prompt .= "\n\n" . __('Assistant personality:', 'gsxr-777') . "\n" . $personality_instruction;
+        }
+
+        if (!empty($custom_instructions)) {
+            $prompt .= "\n\n" . __('Additional system instructions:', 'gsxr-777') . "\n" . $custom_instructions;
+        }
         
         if (!empty($knowledge_content)) {
             $prompt .= "\n\n" . __('Knowledge Base:', 'gsxr-777') . "\n" . $knowledge_content;
@@ -194,6 +225,21 @@ class GSXR_777_API {
         return $prompt;
     }
 
+    private function get_personality_instruction($personality) {
+        $map = array(
+            'friendly' => __('Be warm, polite, and supportive. Keep the tone approachable.', 'gsxr-777'),
+            'sarcastic' => __('Use light sarcasm carefully, without insulting the user. Keep answers useful.', 'gsxr-777'),
+            'pragmatic' => __('Be practical and action-oriented. Focus on clear steps and outcomes.', 'gsxr-777'),
+            'funny' => __('Use a playful and humorous tone while keeping answers accurate.', 'gsxr-777'),
+            'formal' => __('Use formal, professional language and structured responses.', 'gsxr-777'),
+            'empathetic' => __('Show empathy, acknowledge user context, and respond with care.', 'gsxr-777'),
+            'expert' => __('Respond as a domain expert with concise technical precision.', 'gsxr-777'),
+            'concise' => __('Keep responses short, direct, and to the point.', 'gsxr-777')
+        );
+
+        return isset($map[$personality]) ? $map[$personality] : $map['friendly'];
+    }
+
     private function send_openai_request($api_base_url, $api_key, $payload) {
         $endpoint = rtrim($api_base_url, '/') . '/chat/completions';
         
@@ -201,25 +247,42 @@ class GSXR_777_API {
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $api_key
         );
-        
-        $response = wp_remote_post($endpoint, array(
-            'headers' => $headers,
-            'body' => json_encode($payload),
-            'timeout' => 15  // Reduced timeout from 30 to 15 seconds
-        ));
-        
-        if (is_wp_error($response)) {
-            error_log('GSXR-777 API Error: ' . $response->get_error_message());
-            return array(
-                'success' => false,
-                'error' => $response->get_error_message()
-            );
+
+        $request_result = $this->execute_openai_http_request($endpoint, $headers, $payload);
+        if (!$request_result['success']) {
+            return $request_result;
         }
-        
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
-        if (wp_remote_retrieve_response_code($response) !== 200) {
+
+        $response = $request_result['response'];
+        $data = $request_result['data'];
+        $status_code = wp_remote_retrieve_response_code($response);
+
+        if ($status_code !== 200) {
+            // OpenRouter can fail routing when certain params are present for the chosen model.
+            if ($this->should_retry_openrouter_without_advanced_params($api_base_url, $status_code, $data, $payload)) {
+                $fallback_payload = $this->strip_advanced_generation_params($payload);
+                $fallback_result = $this->execute_openai_http_request($endpoint, $headers, $fallback_payload);
+
+                if ($fallback_result['success']) {
+                    $fallback_response = $fallback_result['response'];
+                    $fallback_data = $fallback_result['data'];
+                    $fallback_status_code = wp_remote_retrieve_response_code($fallback_response);
+
+                    if ($fallback_status_code === 200 && isset($fallback_data['choices'][0]['message']['content'])) {
+                        return array(
+                            'success' => true,
+                            'content' => $fallback_data['choices'][0]['message']['content'],
+                            'tokens_used' => isset($fallback_data['usage']['total_tokens']) ? $fallback_data['usage']['total_tokens'] : 0
+                        );
+                    }
+
+                    $data = $fallback_data;
+                    $status_code = $fallback_status_code;
+                } else {
+                    return $fallback_result;
+                }
+            }
+
             $error_message = isset($data['error']['message']) ? $data['error']['message'] : __('API request failed', 'gsxr-777');
             error_log('GSXR-777 API Response Error: ' . $error_message);
             return array(
@@ -227,7 +290,7 @@ class GSXR_777_API {
                 'error' => $error_message
             );
         }
-        
+
         if (isset($data['choices'][0]['message']['content'])) {
             return array(
                 'success' => true,
@@ -235,12 +298,79 @@ class GSXR_777_API {
                 'tokens_used' => isset($data['usage']['total_tokens']) ? $data['usage']['total_tokens'] : 0
             );
         }
-        
+
         error_log('GSXR-777 Invalid API response format');
         return array(
             'success' => false,
             'error' => __('Invalid API response format', 'gsxr-777')
         );
+    }
+
+    private function execute_openai_http_request($endpoint, $headers, $payload) {
+        $response = wp_remote_post($endpoint, array(
+            'headers' => $headers,
+            'body' => json_encode($payload),
+            'timeout' => 15
+        ));
+
+        if (is_wp_error($response)) {
+            error_log('GSXR-777 API Error: ' . $response->get_error_message());
+            return array(
+                'success' => false,
+                'error' => $response->get_error_message()
+            );
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        return array(
+            'success' => true,
+            'response' => $response,
+            'data' => is_array($data) ? $data : array()
+        );
+    }
+
+    private function strip_advanced_generation_params($payload) {
+        unset($payload['top_p'], $payload['frequency_penalty'], $payload['presence_penalty']);
+        return $payload;
+    }
+
+    private function should_retry_openrouter_without_advanced_params($api_base_url, $status_code, $data, $payload) {
+        if (!$this->is_openrouter_api($api_base_url)) {
+            return false;
+        }
+
+        if (!isset($payload['top_p']) && !isset($payload['frequency_penalty']) && !isset($payload['presence_penalty'])) {
+            return false;
+        }
+
+        if (!in_array(intval($status_code), array(400, 404, 422), true)) {
+            return false;
+        }
+
+        $error_message = '';
+        if (isset($data['error']['message']) && is_string($data['error']['message'])) {
+            $error_message = strtolower($data['error']['message']);
+        }
+
+        if ($error_message === '') {
+            return false;
+        }
+
+        return strpos($error_message, 'unsupported') !== false
+            || strpos($error_message, 'not support') !== false
+            || strpos($error_message, 'invalid parameter') !== false
+            || strpos($error_message, 'no endpoints found that support') !== false;
+    }
+
+    private function is_openrouter_api($api_base_url) {
+        $host = wp_parse_url($api_base_url, PHP_URL_HOST);
+        if (empty($host)) {
+            return false;
+        }
+
+        return strpos($host, 'openrouter.ai') !== false;
     }
 
     private function send_yandex_request($api_base_url, $api_key, $payload, $api_project_id = '') {
@@ -365,6 +495,8 @@ class GSXR_777_API {
         $anthropic_payload = array(
             'model' => $payload['model'],
             'max_tokens' => $payload['max_tokens'],
+            'temperature' => $payload['temperature'],
+            'top_p' => isset($payload['top_p']) ? $payload['top_p'] : 1,
             'messages' => $messages
         );
         
@@ -442,7 +574,8 @@ class GSXR_777_API {
             'contents' => $contents,
             'generationConfig' => array(
                 'temperature' => $payload['temperature'],
-                'maxOutputTokens' => $payload['max_tokens']
+                'maxOutputTokens' => $payload['max_tokens'],
+                'topP' => isset($payload['top_p']) ? $payload['top_p'] : 1
             )
         );
         
