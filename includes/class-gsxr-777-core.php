@@ -24,6 +24,30 @@ class GSXR_777_Core {
     public function run() {
         $this->define_admin_hooks();
         $this->define_public_hooks();
+        // Register Polylang strings after init (when Polylang is fully loaded)
+        add_action('init', array($this, 'register_polylang_strings'), 20);
+    }
+    
+    /**
+     * Register strings with Polylang for translation
+     */
+    public function register_polylang_strings() {
+        // Register widget settings strings with Polylang if available
+        if (function_exists('pll_register_string')) {
+            $title = trim(get_option('gsxr_777_widget_title', ''));
+            $welcome = trim(get_option('gsxr_777_widget_welcome', ''));
+            $placeholder = trim(get_option('gsxr_777_widget_placeholder', ''));
+            
+            if ($title) {
+                pll_register_string('gsxr-777-widget-title', $title, 'GSXR-777 AI Chat');
+            }
+            if ($welcome) {
+                pll_register_string('gsxr-777-widget-welcome', $welcome, 'GSXR-777 AI Chat');
+            }
+            if ($placeholder) {
+                pll_register_string('gsxr-777-widget-placeholder', $placeholder, 'GSXR-777 AI Chat');
+            }
+        }
     }
 
     private function load_dependencies() {

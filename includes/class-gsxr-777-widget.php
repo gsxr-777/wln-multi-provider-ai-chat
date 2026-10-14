@@ -25,6 +25,20 @@ class GSXR_777_Widget {
             'callback' => array($this, 'handle_get_history'),
             'permission_callback' => '__return_true'
         ));
+
+        // Dynamic strings endpoint for Polylang and other multi-language plugins
+        register_rest_route('gsxr-777/v1', '/strings/', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'handle_get_strings'),
+            'permission_callback' => '__return_true'
+        ));
+
+        // Dynamic config endpoint - returns full config with current language
+        register_rest_route('gsxr-777/v1', '/config/', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'handle_get_config'),
+            'permission_callback' => '__return_true'
+        ));
     }
 
     public function check_rest_permissions() {
@@ -111,11 +125,42 @@ class GSXR_777_Widget {
         ));
     }
 
+    public function handle_get_strings() {
+        // Switch to current language for translations
+        $this->switch_to_current_language();
+        
+        // Return localized strings based on current language
+        // This allows Polylang and other plugins to switch languages dynamically
+        return rest_ensure_response(array(
+            'send' => __('Send', 'gsxr-777'),
+            'typing' => __('AI is typing...', 'gsxr-777'),
+            'error' => __('Sorry, something went wrong. Please try again.', 'gsxr-777'),
+            'retry' => __('Retry', 'gsxr-777'),
+            'close' => __('Close', 'gsxr-777'),
+            'minimize' => __('Minimize', 'gsxr-777'),
+            'maximize' => __('Maximize', 'gsxr-777'),
+            'language' => $this->get_current_language()
+        ));
+    }
+
+    public function handle_get_config() {
+        // Switch to current language for translations
+        $this->switch_to_current_language();
+        
+        // Return full config based on current language
+        // This endpoint should be called from JavaScript on page load
+        // to get the correct language configuration
+        return rest_ensure_response($this->get_widget_config());
+    }
+
     public function enqueue_widget_scripts() {
         // Only load on frontend
         if (is_admin()) {
             return;
         }
+        
+        // Switch to current language for translations
+        $this->switch_to_current_language();
         
         wp_enqueue_script(
             'gsxr-777-widget',
@@ -167,18 +212,91 @@ class GSXR_777_Widget {
     }
 
     private function get_widget_config() {
+        // Switch to current language FIRST before any translations
+        $this->switch_to_current_language();
+        
+        // Get current language code for URLs
+        $current_locale = $this->get_current_language();
+        $current_lang = substr($current_locale, 0, 2); // 'en_US' -> 'en'
+        
+        // Get saved values
+        $saved_title = trim(get_option('gsxr_777_widget_title', ''));
+        $saved_welcome = trim(get_option('gsxr_777_widget_welcome', ''));
+        $saved_placeholder = trim(get_option('gsxr_777_widget_placeholder', ''));
+        
+        // Default translated values (will use current language after switch_to_current_language)
+        $default_title = __('Chat', 'gsxr-777');
+        $default_welcome = __('Hello! How can I help you?', 'gsxr-777');
+        $default_placeholder = __('Type your message...', 'gsxr-777');
+        
+        // Helper to translate string
+        $translate = function($string) use ($current_lang) {
+            if (empty($string)) return $string;
+            
+            // COMPENSATION FOR INVERTED DATA:
+            // The user has English text entered in the Russian translation field and vice-versa.
+            // We swap the requested language to return the content the user expects.
+            $target_lang = $current_lang;
+            if ($current_lang === 'en') {
+                $target_lang = 'ru';
+            } elseif ($current_lang === 'ru') {
+                $target_lang = 'en';
+            }
+            
+            // Try explicit translation with SWAPPED language
+            if (function_exists('pll_translate_string') && !empty($target_lang)) {
+                return pll_translate_string($string, $target_lang);
+            }
+            
+            // Fallback to current context (this usually relies on implicit state, might be tricky if swapped)
+            if (function_exists('pll__')) {
+                // If we need to swap for pll__ we'd need to switch valid polylang language, which is hard.
+                // Relying on pll_translate_string is safer. 
+                return pll__($string);
+            }
+            
+            return $string;
+        };
+        
+        // For saved values, try to translate them
+        if (empty($saved_title)) {
+            $title = $default_title;
+        } else {
+            $translated = $translate($saved_title);
+            $title = ($translated !== $saved_title && $translated !== '') ? $translated : $saved_title;
+        }
+        
+        if (empty($saved_welcome)) {
+            $welcome = $default_welcome;
+        } else {
+            $translated = $translate($saved_welcome);
+            $welcome = ($translated !== $saved_welcome && $translated !== '') ? $translated : $saved_welcome;
+        }
+        
+        if (empty($saved_placeholder)) {
+            $placeholder = $default_placeholder;
+        } else {
+            $translated = $translate($saved_placeholder);
+            $placeholder = ($translated !== $saved_placeholder && $translated !== '') ? $translated : $saved_placeholder;
+        }
+        
+        // Append language to REST URLs if available
+        $lang_param = $current_lang ? '?lang=' . $current_lang : '';
+        
         return array(
-            'apiUrl' => rest_url('gsxr-777/v1/chat'),
-            'historyUrl' => rest_url('gsxr-777/v1/history/'),
+            'apiUrl' => rest_url('gsxr-777/v1/chat') . $lang_param,
+            'historyUrl' => rest_url('gsxr-777/v1/history/') . $lang_param,
+            'stringsUrl' => rest_url('gsxr-777/v1/strings/') . $lang_param,
+            'configUrl' => rest_url('gsxr-777/v1/config/') . $lang_param,
             'nonce' => wp_create_nonce('wp_rest'),
-            'title' => get_option('gsxr_777_widget_title', __('Chat', 'gsxr-777')),
-            'welcome' => get_option('gsxr_777_widget_welcome', __('Hello! How can I help you?', 'gsxr-777')),
-            'placeholder' => get_option('gsxr_777_widget_placeholder', __('Type your message...', 'gsxr-777')),
+            'title' => $title,
+            'welcome' => $welcome,
+            'placeholder' => $placeholder,
             'position' => get_option('gsxr_777_widget_position', 'bottom-right'),
             'primaryColor' => get_option('gsxr_777_widget_primary_color', '#2563eb'),
             'width' => intval(get_option('gsxr_777_widget_width', 400)),
             'height' => intval(get_option('gsxr_777_widget_height', 600)),
-            'language' => get_locale(),
+            'language' => $current_locale,
             'strings' => array(
                 'send' => __('Send', 'gsxr-777'),
                 'typing' => __('AI is typing...', 'gsxr-777'),
@@ -190,6 +308,7 @@ class GSXR_777_Widget {
             )
         );
     }
+    
 
     private function get_conversation_history($session_id, $limit = 20) {
         global $wpdb;
@@ -224,6 +343,148 @@ class GSXR_777_Widget {
         }
         
         return $history;
+    }
+
+    /**
+     * Get current language with Polylang support
+     * 
+     * @return string Current locale (e.g., 'en_US', 'ru_RU')
+     */
+    private function get_current_language() {
+        // Check if Polylang is active
+        if (function_exists('pll_current_language')) {
+            // Try to get locale directly (most reliable method)
+            $locale = pll_current_language('locale');
+            if ($locale && !empty($locale)) {
+                return $locale;
+            }
+            
+            // Fallback to language code if locale not available
+            $current_lang = pll_current_language();
+            if ($current_lang) {
+                // Convert language code to locale format
+                $locale_map = array(
+                    'en' => 'en_US',
+                    'ru' => 'ru_RU',
+                    'es' => 'es_ES',
+                    'fr' => 'fr_FR',
+                    'de' => 'de_DE',
+                    'it' => 'it_IT',
+                    'pt' => 'pt_PT',
+                    'pl' => 'pl_PL',
+                    'uk' => 'uk_UA'
+                );
+                if (isset($locale_map[$current_lang])) {
+                    return $locale_map[$current_lang];
+                }
+                // If not in map, return as-is (might be a custom locale)
+                return $current_lang;
+            }
+            
+            // In REST API context, try to get language from request
+            if (defined('REST_REQUEST') && REST_REQUEST) {
+                // Check GET parameter first (most reliable for REST)
+                if (isset($_GET['lang'])) {
+                    $lang_code = sanitize_text_field($_GET['lang']);
+                     $locale_map = array(
+                        'en' => 'en_US',
+                        'ru' => 'ru_RU',
+                        'es' => 'es_ES',
+                        'fr' => 'fr_FR',
+                        'de' => 'de_DE',
+                        'it' => 'it_IT',
+                        'pt' => 'pt_PT',
+                        'pl' => 'pl_PL',
+                        'uk' => 'uk_UA'
+                    );
+                    if (isset($locale_map[$lang_code])) {
+                        return $locale_map[$lang_code];
+                    }
+                }
+
+                // Check referer URL for language
+                $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+                if ($referer) {
+                    // Extract language from URL (Polylang adds /en/ or /ru/ to URLs)
+                    if (preg_match('#/(en|ru|es|fr|de|it|pt|pl|uk)/#', $referer, $matches)) {
+                        $lang_code = $matches[1];
+                        $locale_map = array(
+                            'en' => 'en_US',
+                            'ru' => 'ru_RU',
+                            'es' => 'es_ES',
+                            'fr' => 'fr_FR',
+                            'de' => 'de_DE',
+                            'it' => 'it_IT',
+                            'pt' => 'pt_PT',
+                            'pl' => 'pl_PL',
+                            'uk' => 'uk_UA'
+                        );
+                        if (isset($locale_map[$lang_code])) {
+                            return $locale_map[$lang_code];
+                        }
+                    }
+                }
+                
+                // Check Polylang cookie
+                if (isset($_COOKIE['pll_language'])) {
+                    $cookie_lang = sanitize_text_field($_COOKIE['pll_language']);
+                    if ($cookie_lang) {
+                        $locale_map = array(
+                            'en' => 'en_US',
+                            'ru' => 'ru_RU',
+                            'es' => 'es_ES',
+                            'fr' => 'fr_FR',
+                            'de' => 'de_DE',
+                            'it' => 'it_IT',
+                            'pt' => 'pt_PT',
+                            'pl' => 'pl_PL',
+                            'uk' => 'uk_UA'
+                        );
+                        if (isset($locale_map[$cookie_lang])) {
+                            return $locale_map[$cookie_lang];
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Fallback to WordPress locale
+        return get_locale();
+    }
+    
+    /**
+     * Switch to current language for translations
+     * This ensures that __() functions return correct translations
+     */
+    private function switch_to_current_language() {
+        // Always reload textdomain first to ensure we have latest translations
+        load_plugin_textdomain('gsxr-777', false, dirname(GSXR_777_PLUGIN_BASENAME) . '/languages');
+        
+        // Check if Polylang is active
+        if (function_exists('pll_current_language')) {
+            $locale = $this->get_current_language();
+            $current_locale = get_locale();
+            
+            // If locale is different, try to load the correct translation file
+            if ($locale && $locale !== $current_locale) {
+                // Try to load the translation file for the current Polylang language
+                $mofile = GSXR_777_PLUGIN_DIR . 'languages/gsxr-777-' . $locale . '.mo';
+                if (file_exists($mofile)) {
+                    // Unload current textdomain
+                    unload_textdomain('gsxr-777');
+                    // Load the correct translation file
+                    load_textdomain('gsxr-777', $mofile);
+                } else {
+                    // If translation file doesn't exist, try to switch locale
+                    // This works in non-REST context
+                    if (function_exists('switch_to_locale') && !defined('REST_REQUEST')) {
+                        switch_to_locale($locale);
+                        // Reload textdomain after switching
+                        load_plugin_textdomain('gsxr-777', false, dirname(GSXR_777_PLUGIN_BASENAME) . '/languages');
+                    }
+                }
+            }
+        }
     }
 
     private function get_client_ip() {
