@@ -19,7 +19,10 @@
     --gsxr-widget-width: 25rem;
     --gsxr-widget-height: 37.5rem;
     position: fixed;
-    z-index: 99999;
+    /* Theme content uses a higher stacking layer on this site. Keep the
+       floating chat above it without affecting the page layout. */
+    z-index: 2147483647 !important;
+    isolation: isolate;
     /* Isolate the root from theme-wide section rules (borders, padding,
        backgrounds and shadows) used by Fusion and other page builders. */
     border: 0 !important;
@@ -100,6 +103,17 @@
 
 .gsxr777-chat-window {
     position: absolute;
+    /* The active WooCommerce layout applies generic layer/visibility rules to
+       div elements. Keep the actual dialog independently paintable and
+       interactive above shop content. */
+    z-index: 2147483647 !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
     right: 0;
     bottom: 4.375rem;
     width: min(var(--gsxr-widget-width), calc(100vw - 1.25rem));
@@ -116,7 +130,47 @@
 }
 
 .gsxr777-chat-window[hidden] {
-    display: none;
+    display: none !important;
+}
+
+/* When supported, the Popover API moves the dialog to the browser top layer.
+   Reset the user-agent popover centering so the configured corner position is
+   preserved. */
+.gsxr777-chat-window:popover-open {
+    position: fixed !important;
+    inset: auto;
+    margin: 0;
+}
+
+/* A top-layer popover is positioned against the viewport rather than its
+   widget container. Mirror each configured corner so the window remains next
+   to its toggle button. */
+.gsxr777-chat-widget.bottom-right .gsxr777-chat-window:popover-open {
+    top: auto;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: calc(5.625rem + env(safe-area-inset-bottom));
+    left: auto;
+}
+
+.gsxr777-chat-widget.bottom-left .gsxr777-chat-window:popover-open {
+    top: auto;
+    right: auto;
+    bottom: calc(5.625rem + env(safe-area-inset-bottom));
+    left: max(1.25rem, env(safe-area-inset-left));
+}
+
+.gsxr777-chat-widget.top-right .gsxr777-chat-window:popover-open {
+    top: calc(5.625rem + env(safe-area-inset-top));
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: auto;
+    left: auto;
+}
+
+.gsxr777-chat-widget.top-left .gsxr777-chat-window:popover-open {
+    top: calc(5.625rem + env(safe-area-inset-top));
+    right: auto;
+    bottom: auto;
+    left: max(1.25rem, env(safe-area-inset-left));
 }
 
 .gsxr777-chat-widget.bottom-left .gsxr777-chat-window {

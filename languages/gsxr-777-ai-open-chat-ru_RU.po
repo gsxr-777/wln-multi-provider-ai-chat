@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: GSXR-777 AI Open Chat 1.4.0\n"
+"Project-Id-Version: WLN Multi-Provider AI Chat 1.4.0\n"
 "Report-Msgid-Bugs-To: https://github.com/gsxr-777/gsxr-777-ai-open-chat/issues\n"
-"Last-Translator: GSXR-777 Team\n"
+"Last-Translator: WLN Multi-Provider AI Chat Team\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -13,28 +13,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Plugin Name of the plugin
-#: gsxr-777-ai-open-chat.php:3
-#: includes/class-gsxr-777-core.php:489
-msgid "GSXR-777 AI Open Chat"
-msgstr "GSXR-777 AI Open Chat"
+msgid "WLN Multi-Provider AI Chat"
+msgstr "WLN Multi-Provider AI Chat"
 
 #. Plugin URI of the plugin
-#: gsxr-777-ai-open-chat.php:4
 msgid "https://github.com/gsxr-777/gsxr-777-ai-open-chat"
 msgstr "https://github.com/gsxr-777/gsxr-777-ai-open-chat"
 
 #. Description of the plugin
-#: gsxr-777-ai-open-chat.php:5
 msgid "Universal AI chat widget for WordPress with support for OpenAI, Claude, Gemini, Yandex and other LLM providers."
 msgstr "Универсальный виджет AI-чата для WordPress с поддержкой OpenAI, Claude, Gemini, Yandex и других поставщиков LLM."
 
 #. Author of the plugin
-#: gsxr-777-ai-open-chat.php:7
-msgid "GSXR-777"
-msgstr "GSXR-777"
+msgid "WLN Multi-Provider AI Chat"
+msgstr "WLN Multi-Provider AI Chat"
 
 #. Author URI of the plugin
-#: gsxr-777-ai-open-chat.php:8
 msgid "https://wln.su/"
 msgstr "https://wln.su/"
 

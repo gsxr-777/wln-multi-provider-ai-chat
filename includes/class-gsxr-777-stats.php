@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class GSXR_777_Stats {
+class WLN_AI_Chat_Stats {
 
     public function __construct() {
         // Constructor

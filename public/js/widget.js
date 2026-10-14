@@ -81,6 +81,13 @@
             chatWindow.setAttribute('aria-labelledby', `${this.instanceId}-title`);
             chatWindow.hidden = !this.isInline;
 
+            // A popover is placed in the browser top layer, above theme and
+            // WooCommerce stacking contexts. Browsers without this API keep
+            // the existing fixed-position fallback.
+            if (!this.isInline && typeof chatWindow.showPopover === 'function') {
+                chatWindow.setAttribute('popover', 'manual');
+            }
+
             const header = document.createElement('header');
             header.className = 'gsxr777-chat-header';
 
@@ -454,6 +461,14 @@
         open() {
             this.isOpen = true;
             this.window.hidden = false;
+            if (typeof this.window.showPopover === 'function') {
+                try {
+                    this.window.showPopover();
+                } catch (error) {
+                    // The regular fixed-position rendering remains available
+                    // if a browser rejects the popover transition.
+                }
+            }
             this.toggleButton.setAttribute('aria-expanded', 'true');
             this.input.focus();
         }
@@ -463,6 +478,9 @@
                 return;
             }
             this.isOpen = false;
+            if (typeof this.window.hidePopover === 'function' && this.window.matches(':popover-open')) {
+                this.window.hidePopover();
+            }
             this.window.hidden = true;
             this.toggleButton.setAttribute('aria-expanded', 'false');
             this.toggleButton.focus();

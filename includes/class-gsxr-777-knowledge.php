@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class GSXR_777_Knowledge {
+class WLN_AI_Chat_Knowledge {
 
     private $knowledge_dir;
 

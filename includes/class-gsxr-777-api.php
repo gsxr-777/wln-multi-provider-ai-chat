@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class GSXR_777_API {
+class WLN_AI_Chat_API {
 
     public function __construct() {
         // Constructor
@@ -313,7 +313,7 @@ class GSXR_777_API {
 
     private function build_reference_message($context, $retrieval_query) {
         $parts = array();
-        $knowledge = new GSXR_777_Knowledge();
+        $knowledge = new WLN_AI_Chat_Knowledge();
         $retrieval_limit = intval(apply_filters('gsxr_777_rag_chunk_limit', 6));
         $retrieval_characters = intval(apply_filters('gsxr_777_rag_max_characters', 8000));
         $knowledge_content = $knowledge->retrieve_relevant_content(

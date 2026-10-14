@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class GSXR_777_Admin {
+class WLN_Multi_Provider_AI_Chat_Admin {
 
     private $api_key_mask = '********';
 
@@ -193,7 +193,7 @@ class GSXR_777_Admin {
             update_option('gsxr_777_api_base_url', $api_base_url);
 
             // Encrypt API key before saving
-            $api = new GSXR_777_API();
+            $api = new WLN_AI_Chat_API();
             $stored_encrypted_key = get_option('gsxr_777_api_key', '');
             $submitted_api_key = isset($_POST['gsxr_777_api_key'])
                 ? sanitize_text_field(wp_unslash($_POST['gsxr_777_api_key']))
@@ -534,7 +534,7 @@ class GSXR_777_Admin {
     }
 
     public function render_knowledge_page() {
-        $knowledge = new GSXR_777_Knowledge();
+        $knowledge = new WLN_AI_Chat_Knowledge();
         $files = $knowledge->get_all_files();
         $index_stats = $knowledge->get_index_stats();
         
@@ -948,7 +948,7 @@ class GSXR_777_Admin {
     }
 
     public function render_statistics_page() {
-        $stats = new GSXR_777_Stats();
+        $stats = new WLN_AI_Chat_Stats();
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only statistics filter.
         $period = isset($_GET['period']) ? absint(wp_unslash($_GET['period'])) : 30;
         if (!in_array($period, array(7, 30, 90), true)) {
@@ -996,9 +996,9 @@ class GSXR_777_Admin {
         if (strpos($hook, 'gsxr-777-ai-open-chat') !== false) {
             wp_enqueue_style(
                 'gsxr-777-admin',
-                GSXR_777_PLUGIN_URL . 'admin/css/admin-style.css',
+                WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'admin/css/admin-style.css',
                 array(),
-                GSXR_777_VERSION
+                WLN_MULTI_PROVIDER_AI_CHAT_VERSION
             );
         }
     }
@@ -1007,9 +1007,9 @@ class GSXR_777_Admin {
         if (strpos($hook, 'gsxr-777-ai-open-chat') !== false) {
             wp_enqueue_script(
                 'gsxr-777-admin',
-                GSXR_777_PLUGIN_URL . 'admin/js/admin-script.js',
+                WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'admin/js/admin-script.js',
                 array(),
-                GSXR_777_VERSION,
+                WLN_MULTI_PROVIDER_AI_CHAT_VERSION,
                 true
             );
             wp_localize_script('gsxr-777-admin', 'gsxr777_ajax', array(
@@ -1044,7 +1044,7 @@ class GSXR_777_Admin {
             $api_model = isset($_POST['api_model']) ? sanitize_text_field(wp_unslash($_POST['api_model'])) : '';
             $api_project_id = isset($_POST['api_project_id']) ? sanitize_text_field(wp_unslash($_POST['api_project_id'])) : '';
 
-            $api = new GSXR_777_API();
+            $api = new WLN_AI_Chat_API();
             $stored_encrypted_key = get_option('gsxr_777_api_key', '');
             $is_masked_value = $api_key_masked === '1' && $api_key === $this->api_key_mask;
 
@@ -1079,7 +1079,7 @@ class GSXR_777_Admin {
             }
             
             $filename = isset($_POST['filename']) ? sanitize_file_name(wp_unslash($_POST['filename'])) : '';
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Markdown is validated and stored as text by GSXR_777_Knowledge.
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Markdown is validated and stored as text by WLN_AI_Chat_Knowledge.
             $content = isset($_POST['content']) ? wp_unslash($_POST['content']) : '';
             
             // Validate filename
@@ -1092,7 +1092,7 @@ class GSXR_777_Admin {
                 throw new Exception(__('Invalid filename', 'gsxr-777-ai-open-chat'));
             }
             
-            $knowledge = new GSXR_777_Knowledge();
+            $knowledge = new WLN_AI_Chat_Knowledge();
             $result = $knowledge->save_file($filename, $content);
             
             if ($result) {
@@ -1136,7 +1136,7 @@ class GSXR_777_Admin {
                 throw new Exception(__('Invalid filename format', 'gsxr-777-ai-open-chat'));
             }
             
-            $knowledge = new GSXR_777_Knowledge();
+            $knowledge = new WLN_AI_Chat_Knowledge();
             $result = $knowledge->delete_file($filename);
             
             if ($result) {
@@ -1170,7 +1170,7 @@ class GSXR_777_Admin {
                 throw new Exception(__('Invalid filename', 'gsxr-777-ai-open-chat'));
             }
             
-            $knowledge = new GSXR_777_Knowledge();
+            $knowledge = new WLN_AI_Chat_Knowledge();
             $content = $knowledge->get_file_content($filename);
             
             if ($content !== false) {
@@ -1194,7 +1194,7 @@ class GSXR_777_Admin {
             );
         }
 
-        $knowledge = new GSXR_777_Knowledge();
+        $knowledge = new WLN_AI_Chat_Knowledge();
         $knowledge->rebuild_index();
         $stats = $knowledge->get_index_stats();
 
@@ -1221,7 +1221,7 @@ class GSXR_777_Admin {
             return $stored_key;
         }
 
-        $api = new GSXR_777_API();
+        $api = new WLN_AI_Chat_API();
         $encrypted = $api->encrypt_api_key($key);
         if ($encrypted === '') {
             add_settings_error(
@@ -1237,7 +1237,7 @@ class GSXR_777_Admin {
 
     public function sanitize_api_base_url($url) {
         $url = esc_url_raw(trim((string) $url));
-        $api = new GSXR_777_API();
+        $api = new WLN_AI_Chat_API();
         return $api->is_allowed_api_base_url($url) ? untrailingslashit($url) : '';
     }
 

@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class GSXR_777_Widget {
+class WLN_AI_Chat_Widget {
 
     public function __construct() {
         // Constructor
@@ -90,7 +90,7 @@ class GSXR_777_Widget {
     }
 
     public function verify_session_credentials($session_id, $session_token) {
-        $security = new GSXR_777_Security();
+        $security = new WLN_AI_Chat_Security();
         if (!$security->is_valid_session_id($session_id) || !is_string($session_token) || $session_token === '') {
             return false;
         }
@@ -107,7 +107,7 @@ class GSXR_777_Widget {
         $ip_address = $this->get_client_ip();
         
         // Security validation
-        $security = new GSXR_777_Security();
+        $security = new WLN_AI_Chat_Security();
         $validation = $security->validate_request($message, $session_id, $ip_address);
         
         if (!$validation['valid']) {
@@ -129,7 +129,7 @@ class GSXR_777_Widget {
         );
 
         // Store only the metadata explicitly enabled by the administrator.
-        $stats = new GSXR_777_Stats();
+        $stats = new WLN_AI_Chat_Stats();
         $store_metadata = (bool) get_option('gsxr_777_store_request_metadata', false);
         $raw_user_agent = sanitize_text_field(wp_unslash($_SERVER['HTTP_USER_AGENT'] ?? ''));
         $user_agent = $store_metadata ? substr($raw_user_agent, 0, 255) : '';
@@ -141,7 +141,7 @@ class GSXR_777_Widget {
         $chat_context = $this->sanitize_context($context);
         
         // Get AI response
-        $api = new GSXR_777_API();
+        $api = new WLN_AI_Chat_API();
         $response = $api->chat_completion($history, $chat_context);
         
         if (!$response['success']) {
@@ -188,7 +188,7 @@ class GSXR_777_Widget {
 
     public function handle_delete_history($request) {
         $session_id = sanitize_text_field((string) $request->get_param('session_id'));
-        $stats = new GSXR_777_Stats();
+        $stats = new WLN_AI_Chat_Stats();
         $stats->delete_session($session_id);
 
         $response = rest_ensure_response(array(
@@ -243,23 +243,31 @@ class GSXR_777_Widget {
         if (is_admin()) {
             return;
         }
+
+        // Changing an asset must invalidate browser caches independently of a
+        // plugin release. This is especially important for CSS fixes that
+        // affect whether the floating window is visible.
+        $script_path = WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'public/js/widget.js';
+        $style_path = WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'public/css/widget.css';
+        $script_version = file_exists($script_path) ? (string) filemtime($script_path) : WLN_MULTI_PROVIDER_AI_CHAT_VERSION;
+        $style_version = file_exists($style_path) ? (string) filemtime($style_path) : WLN_MULTI_PROVIDER_AI_CHAT_VERSION;
         
         // Switch to current language for translations
         $this->switch_to_current_language();
         
         wp_enqueue_script(
             'gsxr-777-widget',
-            GSXR_777_PLUGIN_URL . 'public/js/widget.js',
+            WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'public/js/widget.js',
             array(),
-            GSXR_777_VERSION,
+            $script_version,
             true
         );
         
         wp_enqueue_style(
             'gsxr-777-widget',
-            GSXR_777_PLUGIN_URL . 'public/css/widget.css',
+            WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL . 'public/css/widget.css',
             array(),
-            GSXR_777_VERSION
+            $style_version
         );
         
         // Localize script with settings

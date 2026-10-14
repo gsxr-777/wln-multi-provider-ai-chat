@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class GSXR_777_Security {
+class WLN_AI_Chat_Security {
 
     public function __construct() {
         // Constructor
