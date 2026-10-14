@@ -754,10 +754,10 @@ class WLN_Multi_Provider_AI_Chat_Admin {
 
             <h2 class="nav-tab-wrapper">
                 <a href="<?php echo esc_url(add_query_arg('tab', 'general', $tabs_base_url)); ?>" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Основные', 'wln-multi-provider-ai-chat'); ?>
+                    <?php esc_html_e('General', 'wln-multi-provider-ai-chat'); ?>
                 </a>
                 <a href="<?php echo esc_url(add_query_arg('tab', 'appearance', $tabs_base_url)); ?>" class="nav-tab <?php echo $active_tab === 'appearance' ? 'nav-tab-active' : ''; ?>">
-                    <?php esc_html_e('Внешний вид', 'wln-multi-provider-ai-chat'); ?>
+                    <?php esc_html_e('Appearance', 'wln-multi-provider-ai-chat'); ?>
                 </a>
             </h2>
             

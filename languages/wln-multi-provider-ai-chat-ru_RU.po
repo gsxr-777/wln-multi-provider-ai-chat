@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: WLN Multi-Provider AI Chat 1.4.4\n"
+"Project-Id-Version: WLN Multi-Provider AI Chat 1.4.8\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-23T20:29:41+00:00\n"
 "PO-Revision-Date: 2026-09-26 16:00+0000\n"
@@ -461,11 +461,11 @@ msgid "Type your message..."
 msgstr "Введите ваше сообщение..."
 
 #: includes/class-wln-multi-provider-ai-chat-admin.php:757
-msgid "Основные"
+msgid "General"
 msgstr "Основные"
 
 #: includes/class-wln-multi-provider-ai-chat-admin.php:760
-msgid "Внешний вид"
+msgid "Appearance"
 msgstr "Внешний вид"
 
 #: includes/class-wln-multi-provider-ai-chat-admin.php:772

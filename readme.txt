@@ -4,7 +4,7 @@ Tags: ai, chat, chatbot, customer support, knowledge base
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.7
+Stable tag: 1.4.8
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -119,6 +119,9 @@ The session endpoint issues a new random signed credential without storing data 
 
 == Changelog ==
 
+= 1.4.8 =
+* Fixed the Widget Settings tabs to display General and Appearance in English while preserving their Russian translations.
+
 = 1.4.7 =
 * Bundled the Russian translation, including the conversation history clearing message.
 * Registered bundled language files while retaining priority for WordPress.org language packs.
@@ -166,6 +169,9 @@ The session endpoint issues a new random signed credential without storing data 
 * Added signed sessions, authenticated API-key encryption, local knowledge indexing, retention cleanup and widget improvements.
 
 == Upgrade Notice ==
+
+= 1.4.8 =
+Fixes the Widget Settings tab translations. Existing settings and stored data are preserved.
 
 = 1.4.7 =
 Includes the Russian translation. Existing settings and stored data are preserved.
