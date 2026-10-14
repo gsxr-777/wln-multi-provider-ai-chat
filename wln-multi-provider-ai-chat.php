@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WLN Multi-Provider AI Chat
  * Description: Universal AI chat widget for WordPress with support for OpenAI, Claude, Gemini, Yandex and other LLM providers.
- * Version: 1.4.5
+ * Version: 1.4.6
  * Author: WLN Multi-Provider AI Chat
  * Author URI: https://wln.su/
  * Text Domain: wln-multi-provider-ai-chat
@@ -19,13 +19,26 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WLN_MULTI_PROVIDER_AI_CHAT_VERSION', '1.4.5');
+define('WLN_MULTI_PROVIDER_AI_CHAT_VERSION', '1.4.6');
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_FILE', __FILE__);
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 // WordPress.org loads translations for the plugin text domain automatically.
+
+// Check PHP before parsing dependencies which require newer PHP syntax.
+if (version_compare(PHP_VERSION, '7.4.0', '<')) {
+    function wln_multi_provider_ai_chat_php_notice() {
+        echo '<div class="notice notice-error"><p>' . esc_html__('WLN Multi-Provider AI Chat requires PHP 7.4.0 or higher.', 'wln-multi-provider-ai-chat') . '</p></div>';
+    }
+    function wln_multi_provider_ai_chat_php_activation_error() {
+        wp_die(esc_html__('WLN Multi-Provider AI Chat requires PHP 7.4.0 or higher.', 'wln-multi-provider-ai-chat'));
+    }
+    add_action('admin_notices', 'wln_multi_provider_ai_chat_php_notice');
+    register_activation_hook(__FILE__, 'wln_multi_provider_ai_chat_php_activation_error');
+    return;
+}
 
 // Load the main plugin class
 require_once WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR . 'includes/class-wln-multi-provider-ai-chat-core.php';

@@ -4,7 +4,7 @@ Tags: ai, chat, chatbot, customer support, knowledge base
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -119,6 +119,14 @@ The session endpoint issues a new random signed credential without storing data 
 
 == Changelog ==
 
+= 1.4.6 =
+* Removed DATETIME expression defaults for compatibility with older MySQL versions and strict SQL modes.
+* Verified required database schema changes before recording a completed upgrade; failed upgrades remain retryable.
+* Declared integer display widths explicitly so schema verification also completes on MariaDB.
+* Prevented LiteSpeed REST caching of chat endpoints so session checks and conversation history remain current.
+* Used portable session index prefixes and handled unavailable optional FULLTEXT indexes without activation output.
+* Checked OpenSSL requirements and handled storage initialization failures during activation.
+
 = 1.4.5 =
 * Kept the Tested up to declaration only in this readme.
 * Applied separate widget width (300-800px) and height (400-900px) setting sanitizers.
@@ -154,6 +162,9 @@ The session endpoint issues a new random signed credential without storing data 
 * Added signed sessions, authenticated API-key encryption, local knowledge indexing, retention cleanup and widget improvements.
 
 == Upgrade Notice ==
+
+= 1.4.6 =
+Fixes activation on older MySQL versions and verifies storage initialization before completing an upgrade. Existing settings and stored data are preserved.
 
 = 1.4.5 =
 WordPress.org review fixes for compatibility metadata, widget dimension validation and knowledge document sanitization. Existing settings and stored data are preserved.

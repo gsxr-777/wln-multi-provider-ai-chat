@@ -14,10 +14,27 @@ class WLN_Multi_Provider_AI_Chat_Widget {
     }
 
     public function register_rest_routes() {
+        add_filter('rest_pre_dispatch', array($this, 'disable_rest_cache'), 10, 3);
         // Retain the old namespace for cached pages and existing integrations.
         foreach (array('wln-multi-provider-ai-chat/v1', 'gsxr-777/v1') as $namespace) {
             $this->register_routes_for_namespace($namespace);
         }
+    }
+
+    public function disable_rest_cache($result, $server, $request) {
+        $route = $request->get_route();
+        if (strpos($route, '/wln-multi-provider-ai-chat/v1/') !== 0 && strpos($route, '/gsxr-777/v1/') !== 0) {
+            return $result;
+        }
+
+        // Visitor session tokens require fresh permission checks on every request.
+        // LiteSpeed's REST cache can override ordinary Cache-Control headers.
+        if (!defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Standard cache integration constant.
+        }
+        do_action('litespeed_control_set_nocache', 'WLN AI chat REST endpoint'); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- LiteSpeed's public API hook.
+        nocache_headers();
+        return $result;
     }
 
     private function register_routes_for_namespace($namespace) {

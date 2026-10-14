@@ -25,6 +25,10 @@ class WLN_Multi_Provider_AI_Chat_Core {
 
     public function run() {
         $did_upgrade = self::maybe_upgrade();
+        if (is_wp_error($did_upgrade)) {
+            add_action('admin_notices', array($this, 'render_storage_error'));
+            return;
+        }
         $this->api->migrate_stored_api_key();
         $this->knowledge->migrate_legacy_files();
         $this->define_admin_hooks();
@@ -124,8 +128,23 @@ class WLN_Multi_Provider_AI_Chat_Core {
             wp_die(esc_html__('WLN Multi-Provider AI Chat requires WordPress 5.0.0 or higher.', 'wln-multi-provider-ai-chat'));
         }
 
-        self::maybe_upgrade(true);
+        if (!function_exists('openssl_encrypt') || !function_exists('openssl_decrypt') || !function_exists('openssl_get_cipher_methods') || !in_array('aes-256-gcm', openssl_get_cipher_methods(), true)) {
+            deactivate_plugins(WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_BASENAME);
+            wp_die(esc_html__('WLN Multi-Provider AI Chat requires the PHP OpenSSL extension with AES-256-GCM support. Ask your hosting provider to enable it.', 'wln-multi-provider-ai-chat'));
+        }
+
+        $result = self::maybe_upgrade(true);
+        if (is_wp_error($result)) {
+            deactivate_plugins(WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_BASENAME);
+            wp_die(esc_html__('WLN Multi-Provider AI Chat could not initialize its storage. Check database permissions and the uploads directory, then activate the plugin again.', 'wln-multi-provider-ai-chat'));
+        }
         self::schedule_maintenance();
+    }
+
+    public function render_storage_error() {
+        if (current_user_can('activate_plugins')) {
+            echo '<div class="notice notice-error"><p>' . esc_html__('WLN Multi-Provider AI Chat could not initialize its storage. Check database permissions and the uploads directory, then activate the plugin again.', 'wln-multi-provider-ai-chat') . '</p></div>';
+        }
     }
 
     public static function deactivate() {
@@ -154,8 +173,9 @@ class WLN_Multi_Provider_AI_Chat_Core {
         // Storage identifiers are intentionally stable across the public rename.
         // Never rename tables or overwrite existing settings during an update.
         // Keep schema and defaults in sync during silent plugin updates.
-        self::create_tables();
-        self::create_knowledge_directory();
+        if (!self::create_tables() || !self::create_knowledge_directory()) {
+            return new WP_Error('wln_storage_initialization_failed');
+        }
         self::set_default_options();
         update_option(self::VERSION_OPTION, WLN_MULTI_PROVIDER_AI_CHAT_VERSION);
         return true;
@@ -187,10 +207,10 @@ class WLN_Multi_Provider_AI_Chat_Core {
             session_id varchar(255) NOT NULL,
             ip_address varchar(45) DEFAULT NULL,
             user_agent text DEFAULT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            last_activity datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY session_id (session_id),
+            created_at datetime DEFAULT NULL,
+            last_activity datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY session_id (session_id(191)),
             KEY idx_created_at (created_at),
             KEY idx_last_activity (last_activity)
         ) $charset_collate;
@@ -200,10 +220,10 @@ class WLN_Multi_Provider_AI_Chat_Core {
             session_id varchar(255) NOT NULL,
             role enum('user','assistant') NOT NULL,
             content longtext NOT NULL,
-            tokens_used int DEFAULT 0,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY idx_session_id (session_id),
+            tokens_used int(11) DEFAULT 0,
+            created_at datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
+            KEY idx_session_id (session_id(191)),
             KEY idx_created_at (created_at)
         ) $charset_collate;
 
@@ -212,8 +232,8 @@ class WLN_Multi_Provider_AI_Chat_Core {
             ip_address varchar(45) NOT NULL,
             event_type varchar(50) NOT NULL,
             details text DEFAULT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
+            created_at datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
             KEY idx_ip_address (ip_address),
             KEY idx_event_type (event_type),
             KEY idx_created_at (created_at)
@@ -221,21 +241,22 @@ class WLN_Multi_Provider_AI_Chat_Core {
 
         CREATE TABLE $blocked_ips_table (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-            ip_address varchar(45) NOT NULL UNIQUE,
+            ip_address varchar(45) NOT NULL,
             reason varchar(255),
-            blocked_at datetime DEFAULT CURRENT_TIMESTAMP,
+            blocked_at datetime DEFAULT NULL,
             expires_at datetime,
-            PRIMARY KEY (id),
+            PRIMARY KEY  (id),
+            UNIQUE KEY ip_address (ip_address),
             KEY idx_ip_address (ip_address),
             KEY idx_expires_at (expires_at)
         ) $charset_collate;
 
         CREATE TABLE $rate_limits_table (
             rate_key char(64) NOT NULL,
-            request_count int unsigned NOT NULL DEFAULT 1,
+            request_count int(10) unsigned NOT NULL DEFAULT 1,
             expires_at datetime NOT NULL,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (rate_key),
+            updated_at datetime DEFAULT NULL,
+            PRIMARY KEY  (rate_key),
             KEY idx_expires_at (expires_at)
         ) $charset_collate;
 
@@ -245,11 +266,11 @@ class WLN_Multi_Provider_AI_Chat_Core {
             source_key char(64) NOT NULL,
             source_url text DEFAULT NULL,
             title text NOT NULL,
-            chunk_index int unsigned NOT NULL DEFAULT 0,
+            chunk_index int(10) unsigned NOT NULL DEFAULT 0,
             content longtext NOT NULL,
             content_hash char(64) NOT NULL,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
+            updated_at datetime DEFAULT NULL,
+            PRIMARY KEY  (id),
             UNIQUE KEY source_chunk (source_type, source_key, chunk_index),
             KEY idx_source_key (source_key),
             KEY idx_updated_at (updated_at)
@@ -260,57 +281,102 @@ class WLN_Multi_Provider_AI_Chat_Core {
             filename varchar(190) NOT NULL,
             content longtext NOT NULL,
             content_hash char(64) NOT NULL,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (source_key),
+            updated_at datetime DEFAULT NULL,
+            PRIMARY KEY  (source_key),
             UNIQUE KEY filename (filename),
             KEY idx_updated_at (updated_at)
         ) $charset_collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        // All writers supply timestamps explicitly. Avoid expression and zero-date
+        // defaults so the schema also works on old MySQL and in strict SQL modes.
+        $previous_suppress_errors = $wpdb->suppress_errors(true);
+        try {
+            foreach (array_filter(array_map('trim', explode(';', $sql))) as $query) {
+                dbDelta($query);
+                // dbDelta's return value describes attempted changes, not success.
+                if ($wpdb->last_error !== '' || dbDelta($query, false)) {
+                    do_action('wln_multi_provider_ai_chat_error', 'schema_update_failed');
+                    return false;
+                }
+            }
 
-        // FULLTEXT is optional: retrieval has a portable LIKE-based fallback.
-        $fulltext_index = $wpdb->get_var($wpdb->prepare(
-            "SHOW INDEX FROM {$knowledge_chunks_table} WHERE Key_name = %s",
-            'search_content'
-        ));
-        if (!$fulltext_index) {
-            $wpdb->query("ALTER TABLE {$knowledge_chunks_table} ADD FULLTEXT KEY search_content (title, content)");
-        }
-        
-        // Check for database errors
-        global $wpdb;
-        if (!empty($wpdb->last_error)) {
-            do_action('wln_multi_provider_ai_chat_error', 'schema_update_failed');
+            // dbDelta does not compare unquoted defaults. Remove legacy timestamp
+            // defaults explicitly while keeping every stored date unchanged.
+            $date_columns = array(
+                $sessions_table => array('created_at', 'last_activity'),
+                $messages_table => array('created_at'),
+                $security_table => array('created_at'),
+                $blocked_ips_table => array('blocked_at'),
+                $rate_limits_table => array('updated_at'),
+                $knowledge_chunks_table => array('updated_at'),
+                $knowledge_documents_table => array('updated_at'),
+            );
+            foreach ($date_columns as $table => $columns) {
+                $table_name = esc_sql($table);
+                $stored_columns = $wpdb->get_results("SHOW COLUMNS FROM {$table_name}");
+                if (!$stored_columns || $wpdb->last_error !== '') {
+                    do_action('wln_multi_provider_ai_chat_error', 'schema_update_failed');
+                    return false;
+                }
+                foreach ($stored_columns as $column) {
+                    if (in_array($column->Field, $columns, true) && $column->Default !== null) {
+                        // Both identifiers come from the fixed schema above.
+                        $field = esc_sql($column->Field);
+                        if ($wpdb->query("ALTER TABLE {$table_name} MODIFY COLUMN {$field} datetime DEFAULT NULL") === false) {
+                            do_action('wln_multi_provider_ai_chat_error', 'schema_update_failed');
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            // FULLTEXT is optional: old InnoDB versions use the LIKE fallback.
+            $fulltext_index = $wpdb->get_var($wpdb->prepare(
+                "SHOW INDEX FROM {$knowledge_chunks_table} WHERE Key_name = %s",
+                'search_content'
+            ));
+            if (!$fulltext_index) {
+                $wpdb->query("ALTER TABLE {$knowledge_chunks_table} ADD FULLTEXT KEY search_content (title, content)");
+            }
+            return true;
+        } finally {
+            $wpdb->suppress_errors($previous_suppress_errors);
         }
     }
 
     private static function create_knowledge_directory() {
         $upload_dir = wp_upload_dir();
+        if (!empty($upload_dir['error'])) {
+            do_action('wln_multi_provider_ai_chat_error', 'knowledge_directory_create_failed');
+            return false;
+        }
         $knowledge_dir = $upload_dir['basedir'] . '/gsxr-777-knowledge';
         
-        if (!file_exists($knowledge_dir)) {
-            // Create directory with error handling
-            if (!wp_mkdir_p($knowledge_dir)) {
-                do_action('wln_multi_provider_ai_chat_error', 'knowledge_directory_create_failed');
+        if (!is_dir($knowledge_dir) && !wp_mkdir_p($knowledge_dir)) {
+            do_action('wln_multi_provider_ai_chat_error', 'knowledge_directory_create_failed');
+            return false;
+        }
+
+        // Deny direct HTTP access on both Apache 2.4 and older Apache versions.
+        // Repair both protection files on retry after a partial installation.
+        $protection_files = array(
+            '.htaccess' => "Options -Indexes\n<IfModule mod_authz_core.c>\n<FilesMatch \"\\.(?:md|txt|json)$\">\nRequire all denied\n</FilesMatch>\n</IfModule>\n<IfModule !mod_authz_core.c>\n<FilesMatch \"\\.(?:md|txt|json)$\">\nOrder allow,deny\nDeny from all\n</FilesMatch>\n</IfModule>\n",
+            'index.php' => "<?php\n// Silence is golden.\n",
+        );
+        foreach ($protection_files as $filename => $content) {
+            $path = $knowledge_dir . '/' . $filename;
+            // Avoid rewriting correct protection files on a read-only filesystem.
+            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- A failed read leads to a checked write.
+            if (is_file($path) && @file_get_contents($path) === $content) {
+                continue;
+            }
+            // Expected filesystem failures must not print activation output.
+            // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Failure is handled below.
+            if (@file_put_contents($path, $content, LOCK_EX) === false) {
+                do_action('wln_multi_provider_ai_chat_error', 'knowledge_protection_write_failed');
                 return false;
             }
-            
-            // Deny direct HTTP access on Apache/OpenLiteSpeed.
-            $htaccess_content = "Options -Indexes\n<FilesMatch \"\\.(?:md|txt|json)$\">\nRequire all denied\n</FilesMatch>\n<IfModule !mod_authz_core.c>\n<FilesMatch \"\\.(?:md|txt|json)$\">\nOrder allow,deny\nDeny from all\n</FilesMatch>\n</IfModule>";
-            $result = file_put_contents($knowledge_dir . '/.htaccess', $htaccess_content, LOCK_EX);
-            if ($result === false) {
-                do_action('wln_multi_provider_ai_chat_error', 'knowledge_protection_write_failed');
-            }
-            
-            $index_content = "<?php\n// Silence is golden.\n";
-            if (file_put_contents($knowledge_dir . '/index.php', $index_content, LOCK_EX) === false) {
-                do_action('wln_multi_provider_ai_chat_error', 'knowledge_index_file_write_failed');
-            }
-        } else {
-            // Repair protection created by older plugin versions.
-            $htaccess_content = "Options -Indexes\n<FilesMatch \"\\.(?:md|txt|json)$\">\nRequire all denied\n</FilesMatch>\n<IfModule !mod_authz_core.c>\n<FilesMatch \"\\.(?:md|txt|json)$\">\nOrder allow,deny\nDeny from all\n</FilesMatch>\n</IfModule>";
-            file_put_contents($knowledge_dir . '/.htaccess', $htaccess_content, LOCK_EX);
         }
         return true;
     }
