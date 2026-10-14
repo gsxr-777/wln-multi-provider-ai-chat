@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WLN Multi-Provider AI Chat
  * Description: Universal AI chat widget for WordPress with support for OpenAI, Claude, Gemini, Yandex and other LLM providers.
- * Version: 1.4.6
+ * Version: 1.4.7
  * Author: WLN Multi-Provider AI Chat
  * Author URI: https://wln.su/
  * Text Domain: wln-multi-provider-ai-chat
@@ -19,13 +19,17 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WLN_MULTI_PROVIDER_AI_CHAT_VERSION', '1.4.6');
+define('WLN_MULTI_PROVIDER_AI_CHAT_VERSION', '1.4.7');
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_FILE', __FILE__);
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
-// WordPress.org loads translations for the plugin text domain automatically.
+// Register bundled translations; WordPress.org language packs take precedence.
+function wln_multi_provider_ai_chat_load_textdomain() {
+    load_plugin_textdomain('wln-multi-provider-ai-chat', false, dirname(WLN_MULTI_PROVIDER_AI_CHAT_PLUGIN_BASENAME) . '/languages');
+}
+add_action('init', 'wln_multi_provider_ai_chat_load_textdomain');
 
 // Check PHP before parsing dependencies which require newer PHP syntax.
 if (version_compare(PHP_VERSION, '7.4.0', '<')) {
