@@ -1,6 +1,6 @@
 # WLN Multi-Provider AI Chat
 
-**English** · [Русский](README.md) · [Latest release](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases/latest) · [Version archive](archives/README.md)
+**English** · [Русский](README.ru.md) · [Latest release](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases/latest) · [Version archive](archives/README.md)
 
 A WordPress plugin that adds a floating AI chat widget. Administrators choose the AI service and model, configure the widget, and optionally provide public site content and Markdown documents as reference material.
 

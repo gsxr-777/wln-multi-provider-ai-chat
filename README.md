@@ -1,78 +1,61 @@
 # WLN Multi-Provider AI Chat
 
-[English](README.en.md) · **Русский** · [Скачать последнюю версию](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases/latest) · [Все версии](archives/README.md)
+**English** · [Русский](README.ru.md) · [Latest release](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases/latest) · [Version archive](archives/README.md)
 
-Плагин для WordPress, который добавляет плавающий AI-чат на сайт. Ответы формирует выбранный администратором AI-сервис, а материалы сайта и Markdown-документы могут использоваться как база знаний.
+A WordPress plugin that adds a floating AI chat widget. Administrators choose the AI service and model, configure the widget, and optionally provide public site content and Markdown documents as reference material.
 
-Текущая версия: **1.4.8**. Ранее плагин назывался **GSXR-777 AI Open Chat**.
+Current version: **1.4.8**. Previously named **GSXR-777 AI Open Chat**.
 
-## Возможности
+## Features
 
-- Подключение OpenAI, Anthropic Claude, Google Gemini, YandexGPT, OpenRouter, локального Ollama и совместимых с OpenAI API серверов.
-- Выбор модели, настройка параметров генерации и системных инструкций.
-- Локальный индекс знаний из опубликованных общедоступных записей и страниц без пароля, а также добавленных администратором Markdown-документов.
-- Передача контекста текущей страницы и ограниченной истории диалога.
-- Настройка цветов, шрифтов, размеров, положения виджета и приветствия.
-- Подписанные сессии посетителей, ограничения частоты запросов и шифрование сохранённых API-ключей.
-- Статистика диалогов, настройка срока хранения и очистка истории посетителем.
-- Русский перевод в комплекте и интеграция с Polylang для сохранённых текстов виджета.
+- OpenAI, Anthropic Claude, Google Gemini, YandexGPT, OpenRouter, local Ollama, and custom OpenAI-compatible endpoints.
+- Model selection, generation parameters, and system instructions.
+- A local knowledge index of published, publicly viewable posts and pages without passwords, plus administrator-supplied Markdown documents.
+- Optional page context and limited conversation history.
+- Configurable widget colors, fonts, dimensions, position, and welcome message.
+- Signed visitor sessions, rate limits, and encrypted API-key storage.
+- Conversation statistics, retention settings, and visitor-controlled history deletion.
+- Bundled Russian translation and Polylang integration for saved widget strings.
 
-Функции плагина доступны без платной лицензии или подписки на плагин. Внешние AI-провайдеры могут взимать плату за запросы.
+Plugin features require no paid plugin license or subscription. External AI services may charge for requests.
 
-## Требования
+## Requirements and installation
 
-- WordPress 5.0 или новее.
-- PHP 7.4 или новее.
-- Расширение PHP OpenSSL с поддержкой AES-256-GCM для сохранения API-ключей.
-- Доступ сервера WordPress к выбранному API; для локального Ollama — к его серверу.
+WordPress **5.0+**, PHP **7.4+**, PHP OpenSSL with **AES-256-GCM**, and network access from the WordPress server to the selected endpoint.
 
-## Установка
+1. Download the plugin ZIP from the **Assets** section of the [latest release](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases/latest). For 1.4.8, use `wln-multi-provider-ai-chat-1.4.8-wordpress-org.zip`.
+2. In WordPress, select **Plugins → Add New → Upload Plugin**, install the ZIP, and activate it.
+3. Open **AI Chat → API Settings**, set the endpoint, model, and API key, test the connection, and save. For an Ollama server that ignores authentication, enter a non-empty placeholder such as `ollama`.
+4. Configure **Widget Settings** and optionally add Markdown documents under **Knowledge Base**.
 
-1. Откройте [Releases](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases/latest) и скачайте ZIP плагина из раздела **Assets**. Для версии 1.4.8 это `wln-multi-provider-ai-chat-1.4.8-wordpress-org.zip`.
-2. В WordPress откройте **Плагины → Добавить новый → Загрузить плагин**, выберите ZIP, установите и активируйте его.
-3. Откройте **AI Chat → Настройки API**: укажите провайдера, адрес API, модель и ключ. Если локальный Ollama не требует авторизации, введите непустую заглушку, например `ollama`.
-4. Выполните проверку соединения и сохраните настройки.
-5. Настройте внешний вид в разделе настроек виджета. При необходимости добавьте Markdown-документы в базу знаний.
+The frontend displays one global floating widget. Both `[wln_multi_provider_ai_chat]` and the legacy `[gsxr_777_chat]` shortcode remain recognized.
 
-Плавающий виджет появляется на страницах сайта. Поддерживаются шорткоды `[wln_multi_provider_ai_chat]` и прежний `[gsxr_777_chat]`; на странице отображается один общий плавающий виджет.
+## Migrating from the previous name
 
-## Обновление со старого имени
+Back up the site, deactivate the old GSXR-777 AI Open Chat copy, install and activate this plugin, and verify its configuration. The first directory/main-file rename requires manual activation.
 
-При переходе с GSXR-777 AI Open Chat сделайте резервную копию сайта, деактивируйте старую копию, установите и активируйте новую, затем проверьте настройки. Смена имени каталога и главного PHP-файла требует ручной активации.
+Do not activate both copies together. Do not use WordPress's Delete action on the old copy if data removal is enabled: both versions share stored data. Existing settings, keys, tables, and legacy shortcodes are retained for compatibility. Deactivation does not delete settings.
 
-Не активируйте обе копии одновременно. Если в старом плагине включено удаление данных при деинсталляции, не удаляйте его через кнопку WordPress «Удалить»: обе копии используют общие сохранённые данные. Настройки, ключи, таблицы и прежние шорткоды сохранены для совместимости; деактивация не удаляет настройки.
+## Data and services
 
-## Данные и внешние сервисы
+Conversations and statistics are stored in the site's WordPress database. Signed session credentials are stored in the visitor's browser localStorage.
 
-Диалоги и статистика хранятся в базе данных WordPress. Подписанные данные сессии сохраняются в localStorage браузера, чтобы продолжать диалог после перезагрузки страницы.
+Provider requests occur when a visitor sends a message or an administrator tests the connection. They contain the API credential, model, generation parameters, system instructions, the message, limited history, and relevant knowledge excerpts. Optional page context may include the page URL, title, excerpt, and selected text.
 
-Запросы к AI отправляются, когда посетитель отправляет сообщение или администратор проверяет соединение. Выбранный сервис получает ключ API, модель, параметры генерации, системные инструкции, сообщение, часть истории и подходящие фрагменты базы знаний. При включённом контексте страницы также могут передаваться её URL, заголовок, фрагмент текста и выделенный посетителем текст.
+Only upload knowledge intended for public visitors. Review content indexing when third-party plugins restrict access, and update the site's privacy notice for conversation storage and the selected provider. See [readme.txt](readme.txt) for full service disclosures and policy links.
 
-Добавляйте в базу знаний только материалы, предназначенные для публичных посетителей. Для сайтов с ограничениями доступа от сторонних плагинов дополнительно проверьте состав индекса. Обновите уведомление о конфиденциальности сайта с учётом хранения диалогов и выбранного сервиса. Полное описание сервисов и ссылки на их правила находятся в [readme.txt](readme.txt).
+## Versions and source
 
-## Версии и исходники
+The repository root contains current 1.4.8 sources. [Releases](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases) provide installation ZIPs. Version tags from `v1.1.0` through `v1.4.8` identify available versions; extra tags preserve distinct snapshots sharing a version number.
 
-- В корне репозитория находятся текущие исходники версии 1.4.8.
-- [Releases](https://github.com/gsxr-777/wln-multi-provider-ai-chat/releases) содержат установочные ZIP-файлы.
-- Теги `v1.1.0`–`v1.4.8` обозначают найденные версии. Дополнительные теги сохраняют разные резервные сборки с одинаковым номером версии.
-- [Каталог archives](archives/README.md) содержит все найденные уникальные ZIP-сборки плагина и отдельные языковые пакеты с контрольными суммами SHA-256.
-- История импортирована из локальных архивов; даты импортирующих коммитов не являются датами первоначальной разработки или выпуска.
-- Прежний репозиторий с исходной историей: [gsxr-777-ai-open-chat](https://github.com/gsxr-777/gsxr-777-ai-open-chat).
+[archives/README.md](archives/README.md) lists all discovered unique plugin packages and language packs, with SHA-256 checksums. Imported commit dates are not original release or development dates. The original Git history remains in [gsxr-777-ai-open-chat](https://github.com/gsxr-777/gsxr-777-ai-open-chat).
 
-Архивные версии сохранены для истории; для установки выбирайте последнюю версию. Список изменений находится в [readme.txt](readme.txt).
+Use the latest version for installation. See [readme.txt](readme.txt) for the changelog.
 
-## Структура
+## Source layout
 
-```text
-wln-multi-provider-ai-chat.php  Точка входа WordPress
-includes/                     API, база знаний, безопасность, статистика и виджет
-admin/                        Панель управления
-public/                       CSS и JavaScript виджета
-languages/                    Шаблон переводов и русский перевод
-assets/                       Иконки и баннеры
-archives/                     Архивы версий и контрольные суммы
-```
+`wln-multi-provider-ai-chat.php` is the plugin entry point. `includes/` contains the core, API, knowledge, security, statistics, and widget classes; `admin/` contains administration assets and views; `public/` contains frontend CSS and JavaScript; `languages/` contains translations; `assets/` contains banners and icons; `archives/` stores historical packages.
 
-## Лицензия
+## License
 
-[GPL-2.0-or-later](LICENSE). Плагин независим и не связан с перечисленными AI-провайдерами.
+[GPL-2.0-or-later](LICENSE). This independent plugin is not affiliated with the listed AI providers.
